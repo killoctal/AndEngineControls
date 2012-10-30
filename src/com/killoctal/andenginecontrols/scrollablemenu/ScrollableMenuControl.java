@@ -133,6 +133,31 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	}
 	
 	
+	public void clearItems()
+	{
+		for(ScrollableMenuItem iItem : mItems)
+		{
+			removeItem(iItem);
+		}
+		
+		mItems.clear();
+		
+		mColsCount = 0;
+		mRowCount = 0;
+	}
+	
+	
+	private void removeItem(ScrollableMenuItem iItem)
+	{
+		if (iItem.getParent() == this)
+		{
+			mScene.unregisterTouchArea(iItem);
+			iItem.detachSelf();
+		}
+	}
+	
+	
+	
 	public void addItemColumn(ScrollableMenuItem pItem)
 	{
 		addItem(mItems.size(), 0, pItem);
