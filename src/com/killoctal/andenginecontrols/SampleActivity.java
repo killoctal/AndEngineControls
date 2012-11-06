@@ -69,12 +69,14 @@ public class SampleActivity extends SimpleBaseGameActivity {
 			}
 		});
 		
-		tmpMenu.addItemRow(new ScrollableMenuItem(getVertexBufferObjectManager()) {
+		ScrollableMenuItem tmp = new ScrollableMenuItem(getVertexBufferObjectManager()) {
 			@Override
 			public void onClick() {
-				setColor(0, 0, 1);
+				setColor(0, 0, 0);
 			}
-		});
+		};
+		tmp.setHeight(140);
+		tmpMenu.addItemRow(tmp);
 		
 		for(int i=0 ; i< 20;i++)
 		{
@@ -86,6 +88,7 @@ public class SampleActivity extends SimpleBaseGameActivity {
 			});
 		}
 		
+		tmpMenu.updateMenu();
 		return mScene;
 	}
 

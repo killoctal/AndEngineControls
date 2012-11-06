@@ -1,7 +1,7 @@
 package com.killoctal.andenginecontrols.scrollablemenu;
 
+import android.util.SparseArray;
 import java.util.ArrayList;
-
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
 import org.andengine.input.touch.TouchEvent;
@@ -19,19 +19,21 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	
 	final private ArrayList<ScrollableMenuItem> mItems;
 	
-	/// Thw current scroll (call updateScroll() if you change manually)
+	/// The current scroll (call updateScroll() if you change manually)
 	public float mScrollX = 0, mScrollY = 0;
 	
-	public float mColumnWidth, mRowHeight;
+	public float mDefaultColumnWidth, mDefaultRowHeight;
 	
-	private int mColsCount = 0, mRowCount = 0;
 	
 	private boolean mScrollEventHandled;
 	
 	/// The scroll detector (for set minimal scroll distance)
 	final public ScrollDetector mScrollDetector;
-
-
+	
+	
+	private final SparseArray<Float> mRowsHeights, mColsWidths;
+	private final SparseArray<Float> mColsPos, mRowsPos;
+	
 	/**
 	 * @brief Constructor
 	 * 
@@ -39,12 +41,12 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	 * @param pY
 	 * @param pWidth
 	 * @param pHeight
-	 * @param pColumnWidth Width of each column
-	 * @param pRowHeight Height of each row
+	 * @param pDefaultColumnWidth Width of each column
+	 * @param pDefaultRowHeight Height of each row
 	 * @param pVertexBufferObjectManager
 	 * @param pScene
 	 */
-	public ScrollableMenuControl(float pX, float pY, float pWidth, float pHeight, float pColumnWidth, float pRowHeight,
+	public ScrollableMenuControl(float pX, float pY, float pWidth, float pHeight, float pDefaultColumnWidth, float pDefaultRowHeight,
 			VertexBufferObjectManager pVertexBufferObjectManager, Scene pScene)
 	{
 		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
@@ -53,13 +55,29 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		mItems = new ArrayList<ScrollableMenuItem>();
 		
 		
-		mColumnWidth = pColumnWidth;
-		mRowHeight = pRowHeight;
+		mDefaultColumnWidth = pDefaultColumnWidth;
+		mDefaultRowHeight = pDefaultRowHeight;
 		
+		mRowsHeights = new SparseArray<Float>();
+		mColsWidths = new SparseArray<Float>();
+		
+		mColsPos = new SparseArray<Float>();
+		mRowsPos = new SparseArray<Float>();
 		
 		mScrollDetector = new ScrollDetector(10, this);
 		
 		mScene.registerTouchArea(this);
+	}
+	
+	
+	public int rowCount()
+	{
+		return mRowsHeights.size();
+	}
+	
+	public int columnCount()
+	{
+		return mColsWidths.size();
 	}
 	
 	
@@ -68,11 +86,23 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	 */
 	public void updateMenu()
 	{
-		for(ScrollableMenuItem iItem : mItems)
+		mColsPos.clear();
+		float tmpTotalX = 0;
+		for(int i=0 ; i<mColsWidths.size() ; i++)
 		{
-			updatePosition(iItem);
-			updateSize(iItem);
+			mColsPos.put(mColsWidths.keyAt(i), tmpTotalX);
+			tmpTotalX += mColsWidths.valueAt(i);
 		}
+		
+		mRowsPos.clear();
+		float tmpTotalY = 0;
+		for(int i=0 ; i<mRowsHeights.size() ; i++)
+		{
+			mRowsPos.put(mRowsHeights.keyAt(i), tmpTotalY);
+			tmpTotalY += mRowsHeights.valueAt(i);
+		}
+		
+		updateScroll();
 	}
 	
 	
@@ -82,8 +112,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	public void updateScroll()
 	{
 		// Checking the applyed scroll
-		float tmpMaxScrollX = mWidth - (float)mColsCount * mColumnWidth;
-		float tmpMaxScrollY = mHeight - (float)mRowCount * mRowHeight;
+		float tmpMaxScrollX = mWidth -  (mColsPos.get(mColsPos.size()-1, 0f) + mColsWidths.get(mColsWidths.size()-1, 0f));
+		float tmpMaxScrollY = mHeight - (mRowsPos.get(mRowsPos.size()-1, 0f) + mRowsHeights.get(mRowsHeights.size()-1, 0f));
 		
 		if (mScrollX > 0)
 		{
@@ -105,32 +135,16 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		// Apply
 		for(ScrollableMenuItem iItem : mItems)
 		{
-			updatePosition(iItem);
+			iItem.setPosition(
+					mScrollX + mColsPos.get(iItem.mColumn, 0f),
+					mScrollY + mRowsPos.get(iItem.mRow, 0f)
+					);
 		}
+		
 	}
 	
 	
-	/**
-	 * @brief Update the size of an item
-	 * @param pItem
-	 */
-	private void updateSize(ScrollableMenuItem pItem)
-	{
-		pItem.setSize(mColumnWidth, mRowHeight);
-	}
 	
-	
-	/**
-	 * @brief Update the position of an item
-	 * @param pItem
-	 */
-	private void updatePosition(ScrollableMenuItem pItem)
-	{
-		float sX = mScrollX + (float)pItem.mColumn * mColumnWidth;
-		float sY = mScrollY + (float)pItem.mRow *mRowHeight;
-	
-		pItem.setPosition(sX, sY);
-	}
 	
 	
 	public void clearItems()
@@ -141,9 +155,6 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		}
 		
 		mItems.clear();
-		
-		mColsCount = 0;
-		mRowCount = 0;
 	}
 	
 	
@@ -160,49 +171,59 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	
 	public void addItemColumn(ScrollableMenuItem pItem)
 	{
-		addItem(mItems.size(), 0, pItem);
+		addItem(pItem, 0, mItems.size());
 	}
 	
 	public void addItemRow(ScrollableMenuItem pItem)
 	{
-		addItem(0, mItems.size(), pItem);
+		addItem(pItem, mItems.size(), 0);
 	}
 	
-	
-	
-	public void addItem(int pColumn, int pRow, ScrollableMenuItem pItem)
+	public void addItem(ScrollableMenuItem pItem, int pRow, int pColumn)
 	{
 		pItem.mColumn = pColumn;
 		pItem.mRow = pRow;
-		
+
 		addItem(pItem);
 	}
-	
-	
+
+
 	/**
 	 * @brief Add an item, using inside's specified position
 	 * @param pItem Item (with position specified inside)
 	 */
 	public void addItem(ScrollableMenuItem pItem)
 	{
-		if (pItem.mColumn+1 > mColsCount)
+		//
+		if (pItem.getWidth() == 0)
 		{
-			mColsCount = pItem.mColumn+1;
+			pItem.setWidth(mDefaultColumnWidth);
 		}
-		if (pItem.mRow+1 > mRowCount)
+		if (pItem.getHeight() == 0)
 		{
-			mRowCount = pItem.mRow+1;
+			pItem.setHeight(mDefaultRowHeight);
 		}
 		
 		
+		
+		if (mColsWidths.get(pItem.mColumn, 0f) < pItem.getWidth())
+		{
+			mColsWidths.put(pItem.mColumn, pItem.getWidth());
+		}
+		
+		if (mRowsHeights.get(pItem.mRow, 0f) < pItem.getHeight())
+		{
+			mRowsHeights.put(pItem.mRow, pItem.getHeight());
+		}
+		
+
 		mItems.add(pItem);
 		
 		//
-		updatePosition(pItem);
-		updateSize(pItem);
-		
-		//
 		attachChild(pItem);
+
+		updateMenu();
+		
 		mScene.registerTouchArea(pItem);
 	}
 	
