@@ -24,9 +24,6 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	
 	public float mDefaultColumnWidth, mDefaultRowHeight;
 	
-	
-	private boolean mScrollEventHandled;
-	
 	/// The scroll detector (for set minimal scroll distance)
 	final public ScrollDetector mScrollDetector;
 	
@@ -251,8 +248,6 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	@Override
 	public void onScroll(ScrollDetector pScollDetector, int pPointerID, float pDistanceX, float pDistanceY)
 	{
-		mScrollEventHandled = true;
-		
 		mScrollX += pDistanceX;
 		mScrollY += pDistanceY;
 		
@@ -265,16 +260,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	@Override
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		mScrollEventHandled = false;
-		
 		// Transmit the event
 		mScrollDetector.onTouchEvent(pSceneTouchEvent);
-		
-		// If scroll handled, we consume the event
-		if (mScrollEventHandled)
-		{
-			return true;
-		}
 		
 		return false;
 	}
