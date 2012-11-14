@@ -10,7 +10,13 @@ import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 
-
+/**
+ * 
+ * @author Gabriel Schlozer
+ * 
+ * @warning If buttons must have special touch events, create them before the menu
+ *          control, or use a custom registerTouchArea for this control.
+ */
 public class ScrollableMenuControl extends Rectangle implements IScrollDetectorListener
 {
 	final private Scene mScene;
@@ -218,10 +224,15 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		
 		//
 		attachChild(pItem);
-
+		
 		updateMenu();
 		
-		mScene.registerTouchArea(pItem);
+		// Placing the button touch area just before the control
+		int tmpIndex = mScene.getTouchAreas().indexOf(this);
+		if (tmpIndex != -1)
+		{
+			mScene.getTouchAreas().add(tmpIndex, pItem);
+		}
 	}
 	
 	
@@ -262,6 +273,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	{
 		// Transmit the event
 		mScrollDetector.onTouchEvent(pSceneTouchEvent);
+		
+		quand on scroll, le onClick ne doit pas être levé !
 		
 		return false;
 	}
