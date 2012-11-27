@@ -37,6 +37,9 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	private final SparseArray<Float> mRowsHeights, mColsWidths;
 	private final SparseArray<Float> mColsPos, mRowsPos;
 	
+	private boolean mScrolling;
+	
+	
 	/**
 	 * @brief Constructor
 	 * 
@@ -61,6 +64,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		mDefaultColumnWidth = pDefaultColumnWidth;
 		mDefaultRowHeight = pDefaultRowHeight;
 		
+		mScrolling = false;
+		
 		mRowsHeights = new SparseArray<Float>();
 		mColsWidths = new SparseArray<Float>();
 		
@@ -70,6 +75,12 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		mScrollDetector = new ScrollDetector(10, this);
 		
 		mScene.registerTouchArea(this);
+	}
+	
+	
+	final public boolean isScrolling()
+	{
+		return mScrolling;
 	}
 	
 	
@@ -83,6 +94,10 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		return mColsWidths.size();
 	}
 	
+	public int itemsCount()
+	{
+		return mItems.size();
+	}
 	
 	/**
 	 * @brief Update the menu (buttons positions, sizes, etc)
@@ -221,8 +236,7 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		
 
 		mItems.add(pItem);
-		
-		//
+		pItem.mScrollControl = this;
 		attachChild(pItem);
 		
 		updateMenu();
@@ -239,6 +253,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	@Override
 	public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID, float pDistanceX, float pDistanceY)
 	{
+		mScrolling = true;
+		
 		onScroll(pScollDetector, pPointerID, pDistanceX, pDistanceY);
 		
 		/*if (pDistanceY == 0 && pDistanceX != 0)
@@ -253,6 +269,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID, float pDistanceX, float pDistanceY)
 	{
 		onScroll(pScollDetector, pPointerID, pDistanceX, pDistanceY);
+		
+		mScrolling = false;
 	}
 	
 	
@@ -274,9 +292,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		// Transmit the event
 		mScrollDetector.onTouchEvent(pSceneTouchEvent);
 		
-		quand on scroll, le onClick ne doit pas être levé !
-		
-		return false;
+		// If touched, the event is always stopped
+		return true;
 	}
 	
 }
