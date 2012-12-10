@@ -6,6 +6,7 @@ import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
+import org.andengine.input.touch.TouchEvent;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 import com.killoctal.andenginecontrols.scrollablemenu.ScrollableMenuControl;
@@ -64,15 +65,17 @@ public class SampleActivity extends SimpleBaseGameActivity {
 		
 		tmpMenu.addItemRow(new ScrollableMenuItem(getVertexBufferObjectManager()) {
 			@Override
-			public void onClick() {
+			public boolean onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
 				setColor(0, 1, 0);
+				return true;
 			}
 		});
 		
 		ScrollableMenuItem tmp = new ScrollableMenuItem(getVertexBufferObjectManager()) {
 			@Override
-			public void onClick() {
+			public boolean onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
 				setColor(0, 0, 0);
+				return true;
 			}
 		};
 		tmp.setHeight(140);
@@ -82,8 +85,9 @@ public class SampleActivity extends SimpleBaseGameActivity {
 		{
 			tmpMenu.addItemRow(new ScrollableMenuItem(getVertexBufferObjectManager()) {
 				@Override
-				public void onClick() {
+				public boolean onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
 					setColor(1, 0, 1);
+					return true;
 				}
 			});
 		}

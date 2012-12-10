@@ -173,6 +173,13 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		}
 		
 		mItems.clear();
+		
+		mScrollX = mScrollY = 0;
+		
+		mRowsHeights.clear();
+		mColsWidths.clear();
+		mColsPos.clear();
+		mRowsPos.clear();
 	}
 	
 	
