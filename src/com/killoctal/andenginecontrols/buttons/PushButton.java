@@ -11,13 +11,24 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
  * 
  * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true) 
  */
-public abstract class PushButton extends Rectangle
+public class PushButton extends Rectangle
 {
-	private boolean mIsPressed;
+	public enum State
+	{
+		NORMAL,
+		PRESSED
+	};
+	
 	private boolean mIsLeaved;
 	
-	private boolean mInterceptEvent;
-	 
+	
+	private boolean mIsFocused;
+	private boolean mIsModal;
+	private boolean mIsModalThisTime;
+	private boolean mIsModalTotal;
+	
+	private boolean mEnabled;
+	private State mState;
 	
 	public PushButton(VertexBufferObjectManager pVertexBufferObjectManager)
 	{
@@ -29,87 +40,204 @@ public abstract class PushButton extends Rectangle
 	{
 		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
-		mIsPressed = false;
+		mEnabled = true;
+		
 		mIsLeaved = false;
 		
-		mInterceptEvent = true;
+		mIsFocused= false;
+		
+		mIsModalThisTime = false;
+		
+		mState = State.NORMAL;
+		
+		setModal(true);
 	}
 	
 	
-	
-	final public boolean isPressed()
+	final public State getState()
 	{
-		return mIsPressed;
+		return mState;
 	}
 	
-	
-	final public void setInterceptEvent(boolean pInterceptEvent)
+	final public boolean isFocused()
 	{
-		mInterceptEvent = pInterceptEvent;
+		return mIsFocused;
+	}
+	
+
+	final public void setModal(boolean pModal)
+	{
+		setModal(pModal, true);
+	}
+	
+	final public void setModal(boolean pModal, boolean pTotal)
+	{
+		mIsModal = pModal;
+		mIsModalTotal = pTotal;
+	}
+	
+	final public boolean isModal()
+	{
+		return mIsModal;
+	}
+	
+	final public void setModalThisTime()
+	{
+		mIsModalThisTime = true;
 	}
 	
 	
+	
+	public void setEnabled(boolean pEnabled)
+	{
+		mEnabled = pEnabled;
+	}
+	
+	public boolean isEnabled()
+	{
+		return mEnabled;
+	}
+	
+	private void changeState(State pState)
+	{
+		if (pState != mState)
+		{
+			State tmpPrevState = mState;
+			mState = pState;
+			onStateChanged(tmpPrevState);
+		}
+	}
+	
+	
+	/**
+	 * @note Don't override this method, it is best to override the virtual methods onClick, onMove, etc
+	 */
 	@Override
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
+		boolean tmpContains = contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+		
 		if (pSceneTouchEvent.isActionMove())
 		{
-			if (mIsLeaved)
+			if (! tmpContains)
 			{
-				if (contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY()))
+				if (! mIsLeaved)
 				{
-					if (! mIsPressed)
-					{
-						mIsPressed = true;
-						mIsLeaved = false;
-						
-						onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-					}
+					mIsLeaved = true;
+					onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 				}
+				else
+				{
+					onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+				}
+				
+				changeState(State.NORMAL);
 			}
 			else
 			{
-				if (! contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY()))
+				if (mIsLeaved)
 				{
-					mIsPressed = false;
-					mIsLeaved = true;
-					
-					onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					mIsLeaved = false;
+					onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 				}
+				else
+				{
+					onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+				}
+				
+				changeState(State.PRESSED);
 			}
 		}
 		else
 		{
 			if (pSceneTouchEvent.isActionDown())
 			{
-				mIsPressed = true;
+				mIsFocused = true;
 				mIsLeaved = false;
 				
 				onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+				
+				changeState(State.PRESSED);
 			}
 			else if (pSceneTouchEvent.isActionUp())
 			{
-				onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-				
-				if (mIsPressed)
+				// If no checked, bindings cause problems
+				if (tmpContains)
 				{
-					mIsPressed = false;
-					mIsLeaved = false;
+					onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					
-					return onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					if (mIsFocused)
+					{
+						mIsFocused = false;
+						mIsLeaved = false;
+						
+						onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
 				}
+				
+				changeState(State.NORMAL);
 			}
 		}
 		
+		if (mIsModalThisTime)
+		{
+			mIsModalThisTime = false;
+			return true;
+		}
 		
-		return mInterceptEvent;
+		if (mIsModal)
+		{
+			if (mIsModalTotal)
+			{
+				return true;
+			}
+			return tmpContains;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public boolean contains(float pX, float pY)
+	{
+		if (! mEnabled || ! isVisible())
+		{
+			return false;
+		}
+		
+		return super.contains(pX, pY);
 	}
 	
 	
 	
-	protected boolean onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { return mInterceptEvent; }
-	protected void onPress(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-	protected void onRelease(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-	protected void onEnter(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-	protected void onLeave(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	protected void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	
+	/**
+	 * @brief Executed when pressed and released
+	 */
+	protected void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	
+	/**
+	 * @brief Executed when pressed (~ACTION_DOWN)
+	 */
+	protected void onPress(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	
+	/**
+	 * @brief Executed when released inside (~ACTION_UP)
+	 */
+	protected void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	
+	/**
+	 * @brief Executed when dragging inside
+	 * @note Verify button state with isFocused()
+	 */
+	protected void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	
+	/**
+	 * @brief Executed when dragging out
+	 * @note Verify button state with isFocused()
+	 */
+	protected void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	
+	protected void onStateChanged(State pPreviousState) { /* nothing */ }
 }

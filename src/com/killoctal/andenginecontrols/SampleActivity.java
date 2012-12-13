@@ -65,17 +65,15 @@ public class SampleActivity extends SimpleBaseGameActivity {
 		
 		tmpMenu.addItemRow(new ScrollableMenuItem(getVertexBufferObjectManager()) {
 			@Override
-			public boolean onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
+			public void onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
 				setColor(0, 1, 0);
-				return true;
 			}
 		});
 		
 		ScrollableMenuItem tmp = new ScrollableMenuItem(getVertexBufferObjectManager()) {
 			@Override
-			public boolean onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
+			public void onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
 				setColor(0, 0, 0);
-				return true;
 			}
 		};
 		tmp.setHeight(140);
@@ -85,9 +83,8 @@ public class SampleActivity extends SimpleBaseGameActivity {
 		{
 			tmpMenu.addItemRow(new ScrollableMenuItem(getVertexBufferObjectManager()) {
 				@Override
-				public boolean onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				public void onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
 					setColor(1, 0, 1);
-					return true;
 				}
 			});
 		}
