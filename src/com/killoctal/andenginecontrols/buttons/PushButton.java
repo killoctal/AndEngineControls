@@ -30,6 +30,8 @@ public class PushButton extends Rectangle
 	private boolean mEnabled;
 	private State mState;
 	
+	private int mPointerID;
+	
 	public PushButton(VertexBufferObjectManager pVertexBufferObjectManager)
 	{
 		this(0, 0, 0, 0, pVertexBufferObjectManager);
@@ -51,6 +53,8 @@ public class PushButton extends Rectangle
 		mState = State.NORMAL;
 		
 		setModal(true);
+		
+		mPointerID = -1;
 	}
 	
 	
@@ -117,65 +121,75 @@ public class PushButton extends Rectangle
 	{
 		boolean tmpContains = contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
 		
-		if (pSceneTouchEvent.isActionMove())
+		if (mPointerID == -1 || mPointerID == pSceneTouchEvent.getPointerID())
 		{
-			if (! tmpContains)
+			if (mPointerID == -1)
 			{
-				if (! mIsLeaved)
+				mPointerID = pSceneTouchEvent.getPointerID();
+			}
+			
+			if (pSceneTouchEvent.isActionMove())
+			{
+				if (! tmpContains)
 				{
-					mIsLeaved = true;
-					onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					if (! mIsLeaved)
+					{
+						mIsLeaved = true;
+						onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+					else
+					{
+						onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+					
+					changeState(State.NORMAL);
 				}
 				else
 				{
-					onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					if (! mIsLeaved && mState == State.PRESSED)
+					{
+						onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+					else
+					{
+						mIsLeaved = false;
+						onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+					
+					changeState(State.PRESSED);
 				}
-				
-				changeState(State.NORMAL);
 			}
 			else
 			{
-				if (mIsLeaved)
+				if (pSceneTouchEvent.isActionDown())
 				{
+					mIsFocused = true;
 					mIsLeaved = false;
-					onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-				else
-				{
-					onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-				
-				changeState(State.PRESSED);
-			}
-		}
-		else
-		{
-			if (pSceneTouchEvent.isActionDown())
-			{
-				mIsFocused = true;
-				mIsLeaved = false;
-				
-				onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-				
-				changeState(State.PRESSED);
-			}
-			else if (pSceneTouchEvent.isActionUp())
-			{
-				// If no checked, bindings cause problems
-				if (tmpContains)
-				{
-					onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					
-					if (mIsFocused)
-					{
-						mIsFocused = false;
-						mIsLeaved = false;
-						
-						onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-					}
+					onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					
+					changeState(State.PRESSED);
 				}
-				
-				changeState(State.NORMAL);
+				else if (pSceneTouchEvent.isActionUp())
+				{
+					// If no checked, bindings cause problems
+					if (tmpContains)
+					{
+						onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						
+						if (mIsFocused)
+						{
+							mIsFocused = false;
+							mIsLeaved = false;
+							
+							onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						}
+					}
+					
+					changeState(State.NORMAL);
+					
+					mPointerID = -1;
+				}
 			}
 		}
 		
