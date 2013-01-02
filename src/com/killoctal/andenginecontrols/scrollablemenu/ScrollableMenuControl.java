@@ -263,12 +263,6 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		mScrolling = true;
 		
 		onScroll(pScollDetector, pPointerID, pDistanceX, pDistanceY);
-		
-		/*if (pDistanceY == 0 && pDistanceX != 0)
-		{
-			pScollDetector.
-			//mRemovingItem = ;
-		}*/
 	}
 	
 	
