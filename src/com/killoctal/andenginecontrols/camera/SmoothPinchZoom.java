@@ -80,17 +80,42 @@ public class SmoothPinchZoom implements IPinchZoomDetectorListener
 				if (mFactorTarget != mCamera.getZoomFactor())
 				{
 					// Calculate the smooth factor
+					
+					/* NOTE : old way (more efficient but works bad if FPS are already too low)
 					float tmpCurrent = mCamera.getZoomFactor();
 					float tmpNew = limit(tmpCurrent + (mFactorTarget - tmpCurrent) * pSecondsElapsed * SPEED);
 					
 					// Apply the zoom until 99.9% precision
-					mCamera.setZoomFactor( (Math.abs(tmpNew / tmpCurrent) > 0.001f) ? tmpNew : mFactorTarget);
+					mCamera.setZoomFactor( (Math.abs(tmpNew / tmpCurrent) > 0.001f) ? tmpNew : mFactorTarget);*/
+					
+					mCamera.setZoomFactor(smoothValue(mFactorTarget, mCamera.getZoomFactor(), SPEED, 4));
 				}
 			}
 	
 			@Override
 			public void reset(){}
 		});
+	}
+	
+	
+	
+	/**
+	 * @brief Smooth a value
+	 * @param dest Value target
+	 * @param current Current value (that will be is modified at each loop)
+	 * @param speed Smooth speed (more = reactive, less = slow)
+	 * @param tfact Hum. Don't know.
+	 * @note Precision 99.99% of target value 
+	 */
+	public static float smoothValue(float dest, float current, float speed, float tfact)
+	{
+		float diff = dest - current;
+		
+		float value = (Math.abs(diff / dest) > 0.0001f)
+				? (float) (current + (diff * ((Math.pow(speed, tfact) - Math.pow(speed-1f, tfact)) / Math.pow(speed , tfact))))
+				: dest;
+				
+		return value;
 	}
 	
 	
