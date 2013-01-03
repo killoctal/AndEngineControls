@@ -7,59 +7,84 @@ import org.andengine.input.touch.TouchEvent;
 import org.andengine.input.touch.detector.PinchZoomDetector;
 import org.andengine.input.touch.detector.PinchZoomDetector.IPinchZoomDetectorListener;
 
-import com.killoctal.andenginecontrols.utils.Maths;
 
 
 /**
- * @author Gabriel Schlozer
+ * @brief Creates a smoothed pinch zoom
+ * @author Gabriel Schlozer © killoctal
+ * @date 2013.01.03
+ * @copyright GNU Lesser General Public License LGPLv3 http://www.gnu.org/licenses/lgpl.html
  */
 public class SmoothPinchZoom implements IPinchZoomDetectorListener
 {
+	/**
+	 * @name Editable properties
+	 * @{
+	 */
+	/// Factor limit min (zoom back)
+	public float FACTOR_MIN = 0;
 	
-	/// Cible du zoom (pour le smooth)
-	private float mZoomTarget = -1;
+	/// Factor limit max (zoom before)
+	public float FACTOR_MAX = Float.MAX_VALUE;
 	
-	/// Le facteur au départ du zoom
-	private float mFactorStart;
+	/// Smooth speed (more = reactive, less = slow)
+	public float SPEED = 15;
+	/**
+	 * @}
+	 */
 	
-	/// Zoom factors limits
-	final private float FACTOR_MIN, FACTOR_MAX;
+	
+	/// The camera
+	final private ZoomCamera mCamera;
 	
 	/// Pinch detector
 	final private PinchZoomDetector mPinch;
 	
+	/// Zoom factor target
+	private float mFactorTarget;
+	
+	/// Factor at start pinch
+	private float mFactorStart;
+	
 	/// If we are zooming or not
 	private boolean mIsZooming;
 	
-	/// La zoom camera
-	final private ZoomCamera mCamera;
-	
-	
+	/// ID of the two pointers
 	private int mPointerID_1, mPointerID_2;
-
-	public SmoothPinchZoom(Scene pScene, ZoomCamera pCam, float pFactorMin, float pFactorMax)
+	
+	
+	
+	/**
+	 * @brief Constructor
+	 * @param pScene Scene (for register the update handler)
+	 * @param pCam The camera that will uses zoom
+	 */
+	public SmoothPinchZoom(Scene pScene, ZoomCamera pCam)
 	{
 		mCamera = pCam;
-		FACTOR_MIN = pFactorMin;
-		FACTOR_MAX = pFactorMax;
 		
+		// Reset the pointers
 		mPointerID_1 = mPointerID_2 = -1;
 		
+		// Creates the pinch detector
 		mPinch = new PinchZoomDetector(this);
 		
-		// La gestion du smooth est faite par un update handler 
+		// Init the target
+		mFactorTarget = mCamera.getZoomFactor();
+		
+		// Smooth management is made with an update handler 
 		pScene.registerUpdateHandler( new IUpdateHandler(){
 			@Override
 			public void onUpdate(float pSecondsElapsed)
 			{
-				if (mZoomTarget != mCamera.getZoomFactor())
+				if (mFactorTarget != mCamera.getZoomFactor())
 				{
-					if (mZoomTarget == -1)
-					{
-						mZoomTarget = mCamera.getZoomFactor();
-					}
+					// Calculate the smooth factor
+					float tmpCurrent = mCamera.getZoomFactor();
+					float tmpNew = limit(tmpCurrent + (mFactorTarget - tmpCurrent) * pSecondsElapsed * SPEED);
 					
-					mCamera.setZoomFactor( Maths.curveValue(mZoomTarget, mCamera.getZoomFactor(), 10, 4) );
+					// Apply the zoom until 99.9% precision
+					mCamera.setZoomFactor( (Math.abs(tmpNew / tmpCurrent) > 0.001f) ? tmpNew : mFactorTarget);
 				}
 			}
 	
@@ -67,12 +92,15 @@ public class SmoothPinchZoom implements IPinchZoomDetectorListener
 			public void reset(){}
 		});
 	}
-
+	
 	
 	
 	/**
-	 * @brief Vérifier si on est en train de zoomer
-	 * @return
+	 * @brief Return if user makes currently a zoom  
+	 * @return TRUE if zoom is made now
+	 * 
+	 * @note Considered as sooming : since user uses two finders and moves it until
+	 *       <b>these two fingers</b> are released
 	 */
 	public boolean isZooming()
 	{
@@ -82,20 +110,93 @@ public class SmoothPinchZoom implements IPinchZoomDetectorListener
 	
 	
 	/**
-	 * @brief Faire un zoom
-	 * @param pFactor Facteur de zoom
+	 * @brief Zoom now (with min/max gesture)
+	 * @param pFactor Zoom factor
 	 */
 	public void zoomTo(float pFactor)
 	{
-		mZoomTarget = Math.max(FACTOR_MIN, Math.min(pFactor, FACTOR_MAX));
+		mFactorTarget = limit(pFactor);
 	}
 	
+	
+	
+	/**
+	 * @brief Apply limits to this value
+	 * @return The value limited to defined limits
+	 */
+	private float limit(float pFactor)
+	{
+		return Math.max(FACTOR_MIN, Math.min(pFactor, FACTOR_MAX));
+	}
+	
+	
+	
+	/**
+	 * @brief Handle the touch event (main method)
+	 * @param pSceneTouchEvent The event raised by
+	 * @return TRUE if event handled, FALSE if not (same usage as "onTouchEvent")
+	 */
+	public boolean handle(TouchEvent pSceneTouchEvent)
+	{
+		// The two fingers memorization management
+		if (pSceneTouchEvent.isActionDown()) // On push
+		{
+			if (mPointerID_1 == -1)
+			{
+				mPointerID_1 = pSceneTouchEvent.getPointerID();
+			}
+			else if (mPointerID_2 == -1)
+			{
+				mPointerID_2 = pSceneTouchEvent.getPointerID();
+			}
+		}
+		else if (pSceneTouchEvent.isActionUp()) // On release
+		{
+			if (pSceneTouchEvent.getPointerID() == mPointerID_1)
+			{
+				mPointerID_1 = -1;
+			}
+			else if (pSceneTouchEvent.getPointerID() == mPointerID_2)
+			{
+				mPointerID_2 = -1;
+			}
+		}
+		
+		
+		// If the two pointers are used, start pinch tracking
+		if (mPointerID_1 != -1 && mPointerID_2 != -1)
+		{
+			// Transmit event to the pinch
+			mPinch.onTouchEvent(pSceneTouchEvent);
+			
+			// If zoom just begin
+			if (! mIsZooming && mPinch.isZooming())
+			{
+				mIsZooming = true;
+			}
+		}
+		// If no pointer is used, stop the tracking
+		else if (mPointerID_1 == -1 && mPointerID_2 == -1)
+		{
+			if (mIsZooming)
+			{
+				// Transmit event to the pinch
+				mPinch.onTouchEvent(pSceneTouchEvent);
+				mIsZooming = false;
+			}
+		}
+		
+		return mIsZooming;
+	}
+
 	
 	
 	@Override
 	public void onPinchZoomStarted(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent)
 	{
+		// Inits the factors
 		mFactorStart = mCamera.getZoomFactor();
+		mFactorTarget = mFactorStart;
 	}
 	
 	@Override
@@ -108,53 +209,6 @@ public class SmoothPinchZoom implements IPinchZoomDetectorListener
 	public void onPinchZoomFinished(final PinchZoomDetector pPinchZoomDetector, final TouchEvent pTouchEvent, final float pZoomFactor)
 	{
 		zoomTo(mFactorStart * pZoomFactor);
-	}
-	
-	
-	
-	public boolean handle(TouchEvent pSceneTouchEvent)
-	{
-		if (pSceneTouchEvent.isActionDown())
-		{
-			if (mPointerID_1 == -1)
-			{
-				mPointerID_1 = pSceneTouchEvent.getPointerID();
-			}
-			else if (mPointerID_2 == -1)
-			{
-				mPointerID_2 = pSceneTouchEvent.getPointerID();
-			}
-		}
-		else if (pSceneTouchEvent.isActionUp())
-		{
-			if (pSceneTouchEvent.getPointerID() == mPointerID_1)
-			{
-				mPointerID_1 = -1;
-			}
-			else if (pSceneTouchEvent.getPointerID() == mPointerID_2)
-			{
-				mPointerID_2 = -1;
-			}
-		}
-		
-		if (mPointerID_1 != -1 && mPointerID_2 != -1)
-		{
-			// On transmet l'event
-			mPinch.onTouchEvent(pSceneTouchEvent);
-			
-			// If zoom just begin
-			if (! mIsZooming && mPinch.isZooming())
-			{
-				mIsZooming = true;
-			}
-		}
-		else if (mPointerID_1 == -1 && mPointerID_2 == -1)
-		{
-			mIsZooming = false;
-		}
-		
-		// Si on est en train de zoomer ou qu'on vient de terminer, on intercepte l'event
-		return mIsZooming;
 	}
 	
 }
