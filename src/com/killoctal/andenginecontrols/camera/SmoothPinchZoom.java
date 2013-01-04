@@ -163,25 +163,27 @@ public class SmoothPinchZoom implements IPinchZoomDetectorListener
 	 */
 	public boolean handle(TouchEvent pSceneTouchEvent)
 	{
+		int tmpPointerID = pSceneTouchEvent.getPointerID();
+		
 		// The two fingers memorization management
 		if (pSceneTouchEvent.isActionDown()) // On push
 		{
-			if (mPointerID_1 == -1)
+			if (mPointerID_1 == -1 && tmpPointerID != mPointerID_2)
 			{
-				mPointerID_1 = pSceneTouchEvent.getPointerID();
+				mPointerID_1 = tmpPointerID;
 			}
-			else if (mPointerID_2 == -1)
+			else if (mPointerID_2 == -1 && tmpPointerID != mPointerID_1)
 			{
-				mPointerID_2 = pSceneTouchEvent.getPointerID();
+				mPointerID_2 = tmpPointerID;
 			}
 		}
 		else if (pSceneTouchEvent.isActionUp()) // On release
 		{
-			if (pSceneTouchEvent.getPointerID() == mPointerID_1)
+			if (tmpPointerID == mPointerID_1)
 			{
 				mPointerID_1 = -1;
 			}
-			else if (pSceneTouchEvent.getPointerID() == mPointerID_2)
+			else if (tmpPointerID == mPointerID_2)
 			{
 				mPointerID_2 = -1;
 			}
