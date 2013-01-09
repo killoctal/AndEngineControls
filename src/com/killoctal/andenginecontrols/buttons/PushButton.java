@@ -1,17 +1,21 @@
 package com.killoctal.andenginecontrols.buttons;
 
 
+import java.util.ArrayList;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 /**
- * 
+ * @brief A simple push button
  * @author Gabriel Schlozer
+ * 
+ * The events are based on listeners. The button itself is a listener so you don't have to manually add listeners.
+ * You can add listeners for extend the button possibilities.
  * 
  * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true) 
  */
-public class PushButton extends Rectangle
+public class PushButton extends Rectangle implements IPushButton
 {
 	public enum State
 	{
@@ -22,15 +26,17 @@ public class PushButton extends Rectangle
 	private boolean mIsLeaved;
 	
 	
-	private boolean mIsFocused;
+	private boolean mIsPressed;
 	private boolean mIsModal;
 	private boolean mIsModalThisTime;
 	private boolean mIsModalTotal;
 	
 	private boolean mEnabled;
 	private State mState;
-	
 	private int mPointerID;
+	
+	final private PushButtonTransmitter mControlListener;
+	final private ArrayList<IPushButton> mListeners;
 	
 	public PushButton(VertexBufferObjectManager pVertexBufferObjectManager)
 	{
@@ -46,28 +52,49 @@ public class PushButton extends Rectangle
 		
 		mIsLeaved = false;
 		
-		mIsFocused= false;
+		mIsPressed = false;
 		
 		mIsModalThisTime = false;
 		
 		mState = State.NORMAL;
 		
+		mPointerID = -1;
+		
 		setModal(true);
 		
-		mPointerID = -1;
+		// Creates the listeners list
+		mListeners = new ArrayList<IPushButton>();
+		addButtonListener(this);
+		
+		// Creates the listener transmitter
+		mControlListener = new PushButtonTransmitter(mListeners);
 	}
 	
+	public void addButtonListener(IPushButton iListener)
+	{
+		mListeners.add(iListener);
+	}
 	
 	final public State getState()
 	{
 		return mState;
 	}
 	
-	final public boolean isFocused()
+	final public boolean isPressed()
 	{
-		return mIsFocused;
+		return mIsPressed;
 	}
 	
+	
+	/**
+	 * 
+	 * @param pPressed
+	 * @note This does not execute any "on...()" method
+	 */
+	public void setPressed(boolean pPressed)
+	{
+		mIsPressed = pPressed;
+	}
 
 	final public void setModal(boolean pModal)
 	{
@@ -108,7 +135,7 @@ public class PushButton extends Rectangle
 		{
 			State tmpPrevState = mState;
 			mState = pState;
-			onStateChanged(tmpPrevState);
+			mControlListener.onStateChanged(tmpPrevState);
 		}
 	}
 	
@@ -135,11 +162,11 @@ public class PushButton extends Rectangle
 					if (! mIsLeaved)
 					{
 						mIsLeaved = true;
-						onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mControlListener.onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
 					else
 					{
-						onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mControlListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
 					
 					changeState(State.NORMAL);
@@ -148,12 +175,12 @@ public class PushButton extends Rectangle
 				{
 					if (! mIsLeaved && mState == State.PRESSED)
 					{
-						onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mControlListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
 					else
 					{
 						mIsLeaved = false;
-						onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mControlListener.onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
 					
 					changeState(State.PRESSED);
@@ -163,10 +190,10 @@ public class PushButton extends Rectangle
 			{
 				if (pSceneTouchEvent.isActionDown())
 				{
-					mIsFocused = true;
+					mIsPressed = true;
 					mIsLeaved = false;
 					
-					onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					mControlListener.onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					
 					changeState(State.PRESSED);
 				}
@@ -175,14 +202,14 @@ public class PushButton extends Rectangle
 					// If no checked, bindings cause problems
 					if (tmpContains)
 					{
-						onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mControlListener.onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 						
-						if (mIsFocused)
+						if (mIsPressed)
 						{
-							mIsFocused = false;
+							mIsPressed = false;
 							mIsLeaved = false;
 							
-							onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+							mControlListener.onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 						}
 					}
 					
@@ -224,34 +251,33 @@ public class PushButton extends Rectangle
 	
 	
 	
-	protected void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+	@Override
+	public void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+
+
+	@Override
+	public void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+
+
+	@Override
+	public void onPress(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+
+
+	@Override
+	public void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+
+
+	@Override
+	public void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+
+
+	@Override
+	public void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
+
+
+	@Override
+	public void onStateChanged(State pPreviousState) { /* nothing */ }
 	
-	/**
-	 * @brief Executed when pressed and released
-	 */
-	protected void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
 	
-	/**
-	 * @brief Executed when pressed (~ACTION_DOWN)
-	 */
-	protected void onPress(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-	
-	/**
-	 * @brief Executed when released inside (~ACTION_UP)
-	 */
-	protected void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-	
-	/**
-	 * @brief Executed when dragging inside
-	 * @note Verify button state with isFocused()
-	 */
-	protected void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-	
-	/**
-	 * @brief Executed when dragging out
-	 * @note Verify button state with isFocused()
-	 */
-	protected void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-	
-	protected void onStateChanged(State pPreviousState) { /* nothing */ }
+
 }
