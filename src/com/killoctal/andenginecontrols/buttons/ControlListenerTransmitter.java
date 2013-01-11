@@ -1,28 +1,28 @@
 package com.killoctal.andenginecontrols.buttons;
 
 import java.util.List;
-
 import org.andengine.input.touch.TouchEvent;
-
-import com.killoctal.andenginecontrols.buttons.PushButton.State;
 
 
 /**
  * @brief Transmits events to the sublisteners 
  * @author Gabriel Schlozer
  */
-public class PushButtonTransmitter implements IPushButton
+public class ControlListenerTransmitter implements IControlListener
 {
-	final private List<IPushButton> mListeners;
-	public PushButtonTransmitter(List<IPushButton> pListeners)
+	final private List<IControlListener> mListeners;
+	
+	
+	public ControlListenerTransmitter(List<IControlListener> pListeners)
 	{
 		mListeners = pListeners;
 	}
 	
+	
 	@Override
 	public void onStateChanged(State pPreviousState)
 	{
-		for(IPushButton iListener : mListeners)
+		for(IControlListener iListener : mListeners)
 		{
 			iListener.onStateChanged(pPreviousState);
 		}
@@ -31,7 +31,7 @@ public class PushButtonTransmitter implements IPushButton
 	@Override
 	public void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		for(IPushButton iListener : mListeners)
+		for(IControlListener iListener : mListeners)
 		{
 			iListener.onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 		}
@@ -40,7 +40,7 @@ public class PushButtonTransmitter implements IPushButton
 	@Override
 	public void onPress(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		for(IPushButton iListener : mListeners)
+		for(IControlListener iListener : mListeners)
 		{
 			iListener.onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 		}
@@ -49,7 +49,7 @@ public class PushButtonTransmitter implements IPushButton
 	@Override
 	public void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		for(IPushButton iListener : mListeners)
+		for(IControlListener iListener : mListeners)
 		{
 			iListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 		}
@@ -58,7 +58,7 @@ public class PushButtonTransmitter implements IPushButton
 	@Override
 	public void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		for(IPushButton iListener : mListeners)
+		for(IControlListener iListener : mListeners)
 		{
 			iListener.onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 		}
@@ -67,7 +67,7 @@ public class PushButtonTransmitter implements IPushButton
 	@Override
 	public void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		for(IPushButton iListener : mListeners)
+		for(IControlListener iListener : mListeners)
 		{
 			iListener.onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 		}
@@ -76,7 +76,7 @@ public class PushButtonTransmitter implements IPushButton
 	@Override
 	public void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		for(IPushButton iListener : mListeners)
+		for(IControlListener iListener : mListeners)
 		{
 			iListener.onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 		}

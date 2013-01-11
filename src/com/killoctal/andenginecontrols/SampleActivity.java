@@ -8,7 +8,6 @@ import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
-
 import com.killoctal.andenginecontrols.scrollablemenu.ScrollableMenuControl;
 import com.killoctal.andenginecontrols.scrollablemenu.ScrollableMenuItem;
 

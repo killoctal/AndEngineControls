@@ -1,10 +1,19 @@
 package com.killoctal.andenginecontrols.buttons;
 
 import org.andengine.input.touch.TouchEvent;
-import com.killoctal.andenginecontrols.buttons.PushButton.State;
 
-public interface IPushButton
+
+public interface IControlListener
 {
+	public enum State
+	{
+		NORMAL,
+		PRESSED
+	};
+	
+	void onStateChanged(State pPreviousState);
+	
+	
 	void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
 	
 	/**
@@ -35,5 +44,4 @@ public interface IPushButton
 	void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
 	
 	
-	void onStateChanged(State pPreviousState);
 }

@@ -8,8 +8,10 @@ import com.killoctal.andenginecontrols.buttons.PushButton;
 
 public abstract class ScrollableMenuItem extends PushButton
 {
+	
 	int mColumn = -1, mRow = -1;
 	ScrollableMenuControl mScrollControl;
+	
 	
 	public ScrollableMenuItem(VertexBufferObjectManager pVertexBufferObjectManager)
 	{
@@ -17,12 +19,13 @@ public abstract class ScrollableMenuItem extends PushButton
 	}
 	
 	
+	
 	@Override
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		if (mScrollControl.isScrolling() && isPressed())
+		if (mScrollControl.isScrolling() && getClickDetector().isPressed())
 		{
-			setPressed(false);
+			getClickDetector().setPressed(false);
 		}
 		
 		if (super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY))
