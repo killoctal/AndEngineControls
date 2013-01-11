@@ -4,28 +4,59 @@ import java.util.ArrayList;
 
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.input.touch.TouchEvent;
-import com.killoctal.andenginecontrols.buttons.IControlListener;
-import com.killoctal.andenginecontrols.buttons.IControlListener.State;
-import com.killoctal.andenginecontrols.buttons.ControlListenerTransmitter;
 
 public class PointerDetector
 {
-	boolean mIsLeaved;
+	
+	public static interface IClickListener {
+		/// Executed when pressed and released
+		void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+		
+		/// Executed when pressed (~ACTION_DOWN)
+		void onPress(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+		
+		/// Executed when released inside (~ACTION_UP)
+		void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+	}
+	
+	
+	public static interface IMoveListener {
+		/// Executed when pointer is moving
+		void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+		
+		/// Executed when dragging inside (you should verify button state with isPressed()
+		void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+		
+		/// Executed when dragging out (you should verify button state with isPressed()
+		void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+	}
+	
+	
+	
+	
 	boolean mIsPressed;
+	boolean mIsPointerInside;
 	
 	public ITouchArea mTouchArea;
 	private int mPointerID;
 	
-	final private ControlListenerTransmitter mControlListener;
-	final private ArrayList<IControlListener> mListeners;
 	
-	private State mState;
 	
 	private boolean mIsEnabled;
 
 	private boolean mIsModal;
 	private boolean mIsModalThisTime;
 	private boolean mIsModalTotal;
+	
+	/**
+	 * @name Listeners
+	 * @{
+	 */
+	final public ArrayList<IClickListener> mClickListeners;
+	final public ArrayList<IMoveListener> mMoveListeners;
+	/**
+	 * @}
+	 */
 	
 	
 	public PointerDetector()
@@ -37,29 +68,32 @@ public class PointerDetector
 	{
 		mTouchArea = pTouchArea;
 		
-		// Creates the listeners list
-		mListeners = new ArrayList<IControlListener>();
-		
-		// Creates the listener transmitter
-		mControlListener = new ControlListenerTransmitter(mListeners);
+		// Creates the listeners lists
+		mClickListeners = new ArrayList<PointerDetector.IClickListener>();
+		mMoveListeners = new ArrayList<PointerDetector.IMoveListener>();
 		
 		reset();
 	}
-
+	
 	
 	public void reset()
 	{
 		mIsEnabled = true;
-		mPointerID = -1;
-		mIsLeaved = false;
-		mIsPressed = false;
-		mState = State.NORMAL;
+		mPointerID = TouchEvent.INVALID_POINTER_ID;
+		
 		mIsModalThisTime = false;
+		
+		mIsPressed = false;
+		mIsPointerInside = false;
 		
 		setModal(true);
 	}
 	
 	
+	/*public void catchPointer(int pPointerID)
+	{
+		mPointerID = pPointerID;
+	}*/
 
 	public void setEnabled(boolean pEnabled)
 	{
@@ -72,15 +106,15 @@ public class PointerDetector
 	}
 	
 	
-	final public State getState()
-	{
-		return mState;
-	}
-	
 	final public boolean isPressed()
 	{
 		return mIsPressed;
 	}
+	/*
+	final public boolean isLeft()
+	{
+		return mIsLeft;
+	}*/
 	
 
 	final public void setModal(boolean pModal, boolean pTotal)
@@ -119,101 +153,91 @@ public class PointerDetector
 
 	
 	
-	public void addListener(IControlListener iListener)
-	{
-		mListeners.add(iListener);
-	}
-	
-	
-	
-	private void changeState(State pState)
-	{
-		if (pState != mState)
-		{
-			State tmpPrevState = mState;
-			mState = pState;
-			mControlListener.onStateChanged(tmpPrevState);
-		}
-	}
-	
 	
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
 		boolean tmpContains = mTouchArea == null || mTouchArea.contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
 		
-		if (mPointerID == -1 || mPointerID == pSceneTouchEvent.getPointerID())
+		if (mPointerID == TouchEvent.INVALID_POINTER_ID)
 		{
-			if (mPointerID == -1)
-			{
-				mPointerID = pSceneTouchEvent.getPointerID();
-			}
-			
+			mPointerID = pSceneTouchEvent.getPointerID();
+		}
+		
+		
+		if (mPointerID == pSceneTouchEvent.getPointerID())
+		{
 			if (pSceneTouchEvent.isActionMove())
 			{
 				if (tmpContains)
 				{
-					if (! mIsLeaved && mState == State.PRESSED)
+					if (! mIsPointerInside)
 					{
-						mControlListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mIsPointerInside = true;
+						
+						// Execute the listners
+						for(IMoveListener iListener : mMoveListeners)
+							iListener.onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
 					else
 					{
-						mIsLeaved = false;
-						mControlListener.onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						// Execute the listners
+						for(IMoveListener iListener : mMoveListeners)
+							iListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
-					
-					changeState(State.PRESSED);
 				}
 				else
 				{
-					if (! mIsLeaved)
+					if (mIsPointerInside)
 					{
-						mIsLeaved = true;
-						mControlListener.onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mIsPointerInside = false;
+
+						// Execute the listners
+						for(IMoveListener iListener : mMoveListeners)
+							iListener.onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
 					else
 					{
-						mControlListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						// Execute the listners
+						for(IMoveListener iListener : mMoveListeners)
+							iListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
-					
-					changeState(State.NORMAL);
 				}
 			}
-			else
+			else if (pSceneTouchEvent.isActionDown())
 			{
-				if (pSceneTouchEvent.isActionDown())
+				mIsPressed = true;
+				mIsPointerInside = true;
+				
+				// Execute the listners
+				for(IClickListener iListener : mClickListeners)
+					iListener.onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			}
+			else if (pSceneTouchEvent.isActionUp())
+			{
+				// If no checked, bindings cause problems
+				if (tmpContains)
 				{
-					mIsPressed = true;
-					mIsLeaved = false;
+					// Execute the listners
+					for(IClickListener iListener : mClickListeners)
+						iListener.onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					
-					mControlListener.onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-					
-					changeState(State.PRESSED);
-				}
-				else if (pSceneTouchEvent.isActionUp())
-				{
-					// If no checked, bindings cause problems
-					if (tmpContains)
+					if (mIsPressed)
 					{
-						mControlListener.onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						mIsPressed = false;
+						mIsPointerInside = false;
 						
-						if (mIsPressed)
-						{
-							mIsPressed = false;
-							mIsLeaved = false;
-							
-							mControlListener.onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-						}
+						// Execute the listners
+						for(IClickListener iListener : mClickListeners)
+							iListener.onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
-					
-					changeState(State.NORMAL);
-					
-					mPointerID = -1;
 				}
+				
+				// Free the catched pointer
+				mPointerID = TouchEvent.INVALID_POINTER_ID;
 			}
 		}
 		
-
+		
 		if (mIsModalThisTime)
 		{
 			mIsModalThisTime = false;

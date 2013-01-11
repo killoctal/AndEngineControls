@@ -6,10 +6,8 @@ import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
-import org.andengine.input.touch.TouchEvent;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import com.killoctal.andenginecontrols.scrollablemenu.ScrollableMenuControl;
-import com.killoctal.andenginecontrols.scrollablemenu.ScrollableMenuItem;
 
 
 public class SampleActivity extends SimpleBaseGameActivity {
@@ -61,7 +59,7 @@ public class SampleActivity extends SimpleBaseGameActivity {
 		mScene.attachChild(tmpMenu);
 		
 		tmpMenu.setColor(1, 0, 0);
-		
+		/*
 		tmpMenu.addItemRow(new ScrollableMenuItem(getVertexBufferObjectManager()) {
 			@Override
 			public void onClick(TouchEvent pceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
@@ -86,7 +84,7 @@ public class SampleActivity extends SimpleBaseGameActivity {
 					setColor(1, 0, 1);
 				}
 			});
-		}
+		}*/
 		
 		tmpMenu.updateMenu();
 		return mScene;

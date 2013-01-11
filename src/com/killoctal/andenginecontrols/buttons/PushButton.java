@@ -15,7 +15,7 @@ import com.killoctal.andenginecontrols.detectors.PointerDetector;
  * 
  * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true) 
  */
-public class PushButton extends Rectangle implements IControlListener
+public class PushButton extends Rectangle
 {
 	
 	private PointerDetector mDetector;
@@ -32,12 +32,22 @@ public class PushButton extends Rectangle implements IControlListener
 		
 		// Creates the default detector
 		setClickDetector( new PointerDetector() );
-		mDetector.addListener(this);
+		
+		// Auto add listeners
+		if (this instanceof PointerDetector.IClickListener)
+		{
+			getPointerDetector().mClickListeners.add((PointerDetector.IClickListener)this);
+		}
+		
+		if (this instanceof PointerDetector.IMoveListener)
+		{
+			getPointerDetector().mMoveListeners.add((PointerDetector.IMoveListener)this);
+		}
 	}
 	
 	
 	
-	final public PointerDetector getClickDetector()
+	final public PointerDetector getPointerDetector()
 	{
 		return mDetector;
 	}
@@ -82,35 +92,6 @@ public class PushButton extends Rectangle implements IControlListener
 		return super.contains(pX, pY);
 	}
 	
-	
-	
-	@Override
-	public void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
 
-
-	@Override
-	public void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-
-
-	@Override
-	public void onPress(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-
-
-	@Override
-	public void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-
-
-	@Override
-	public void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-
-
-	@Override
-	public void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) { /* nothing */ }
-
-
-	@Override
-	public void onStateChanged(State pPreviousState) { /* nothing */ }
-	
-	
 
 }

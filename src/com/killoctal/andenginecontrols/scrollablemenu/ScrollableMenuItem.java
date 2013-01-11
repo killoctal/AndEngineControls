@@ -23,9 +23,9 @@ public abstract class ScrollableMenuItem extends PushButton
 	@Override
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		if (mScrollControl.isScrolling() && getClickDetector().isPressed())
+		if (mScrollControl.isScrolling() && getPointerDetector().isPressed())
 		{
-			getClickDetector().setPressed(false);
+			getPointerDetector().setPressed(false);
 		}
 		
 		if (super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY))
