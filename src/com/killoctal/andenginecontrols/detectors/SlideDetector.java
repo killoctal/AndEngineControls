@@ -2,9 +2,8 @@ package com.killoctal.andenginecontrols.detectors;
 
 import java.util.ArrayList;
 import org.andengine.entity.scene.ITouchArea;
-import org.andengine.input.touch.TouchEvent;
 
-public class SlideDetector extends PointerDetector
+public class SlideDetector extends ScrollDetector
 {
 	public enum Direction
 	{
@@ -24,8 +23,6 @@ public class SlideDetector extends PointerDetector
 	
 	
 	
-	private float mMinimumDistance;
-	private float mPressX, mPressY;
 	private Direction mSlidingDirection;
 	
 	
@@ -40,91 +37,153 @@ public class SlideDetector extends PointerDetector
 	
 	public SlideDetector()
 	{
-		this(null);
+		this(DEFAULT_MIN_DISTANCE);
 	}
 	
-	public SlideDetector(ITouchArea pTouchArea)
+	public SlideDetector(float pMinimumDistance)
 	{
-		super(pTouchArea);
+		this(pMinimumDistance, null);
+	}
+	
+	public SlideDetector(float pMinimumDistance, ITouchArea pTouchArea)
+	{
+		super(pMinimumDistance, pTouchArea);
 		
 		mSlideListeners = new ArrayList<SlideDetector.ISlideDetectorListener>();
-		
-		mPressX = 0;
-		mPressY = 0;
 		
 		mSlidingDirection = Direction.NONE;
 		
 	}
 	
 	
-	@Override
-	protected void executeOnPressListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
+	public Direction getDirection()
 	{
-		mPressX = pTouchAreaLocalX;
-		mPressY = pTouchAreaLocalY;
-		
-		super.executeOnPressListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+		return mSlidingDirection;
 	}
 	
 	
 	@Override
-	protected void executeOnMoveListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside)
+	protected void executeOnScrollStartListeners(float pOffsetX, float pOffsetY)
 	{
-		float tmpOffsetX = mPressX - pTouchAreaLocalX;
-		float tmpOffsetY = mPressY - pTouchAreaLocalY;
+		// Check if slide has began in a direction
+		if (pOffsetX <= - mMinimumDistance)
+		{
+			mSlidingDirection = Direction.LEFT;
+		}
+		else if (pOffsetX >= mMinimumDistance)
+		{
+			mSlidingDirection = Direction.RIGHT;
+		}
+		else if (pOffsetY <= - mMinimumDistance)
+		{
+			mSlidingDirection = Direction.TOP;
+		}
+		else if (pOffsetY >= mMinimumDistance)
+		{
+			mSlidingDirection = Direction.BOTTOM;
+		}
 		
+		// Replace the press position by the slide start position
+		mPressX = pOffsetX;
+		mPressY = pOffsetY;
+		
+		// If directiopn changed => slide start
+		if (mSlidingDirection != Direction.NONE)
+		{
+			for(ISlideDetectorListener iListener : mSlideListeners)
+				iListener.onSlideStart(mSlidingDirection, mCurrentX - mPressX, mCurrentY - mPressY);
+		}
+	}
+	
+	
+	@Override
+	protected void executeOnScrollListeners(float pOffsetX, float pOffsetY)
+	{
+		super.executeOnScrollListeners(pOffsetX, pOffsetY);
+		
+		for(ISlideDetectorListener iListener : mSlideListeners)
+			iListener.onSlide(mSlidingDirection, pOffsetX, pOffsetY);
+	}
+	
+	
+	@Override
+	protected void executeOnScrollFinishListeners(float pOffsetX, float pOffsetY)
+	{
+		super.executeOnScrollFinishListeners(pOffsetX, pOffsetY);
 		
 		if (mSlidingDirection != Direction.NONE)
 		{
 			for(ISlideDetectorListener iListener : mSlideListeners)
-				iListener.onSlide(mSlidingDirection, tmpOffsetX, tmpOffsetY);
-		}
-		else
-		{
-			// Check if slide has began in a direction
-			if (tmpOffsetX < - mMinimumDistance)
-			{
-				mSlidingDirection = Direction.LEFT;
-			}
-			else if (tmpOffsetX > mMinimumDistance)
-			{
-				mSlidingDirection = Direction.RIGHT;
-			}
-			else if (tmpOffsetY < - mMinimumDistance)
-			{
-				mSlidingDirection = Direction.TOP;
-			}
-			else if (tmpOffsetY > mMinimumDistance)
-			{
-				mSlidingDirection = Direction.BOTTOM;
-			}
+				iListener.onSlideEnd(mSlidingDirection, pOffsetX, pOffsetY);
 			
-			// If directiopn changed => slide start
+			mSlidingDirection = Direction.NONE;
+		}
+	}
+	/*
+	@Override
+	protected void executeOnMoveListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside)
+	{
+		if (mCanSlide)
+		{
+			mCurrentX = pTouchAreaLocalX;
+			mCurrentY = pTouchAreaLocalY;
+			
+			float tmpOffsetX = mCurrentX - mPressX;
+			float tmpOffsetY = mCurrentY - mPressY;
+			
+			// If slider already started
 			if (mSlidingDirection != Direction.NONE)
 			{
 				for(ISlideDetectorListener iListener : mSlideListeners)
-					iListener.onSlideStart(mSlidingDirection, tmpOffsetX, tmpOffsetY);
+					iListener.onSlide(mSlidingDirection, tmpOffsetX, tmpOffsetY);
+			}
+			else
+			{
+				// Check if slide has began in a direction
+				if (tmpOffsetX < - mMinimumDistance)
+				{
+					mSlidingDirection = Direction.LEFT;
+				}
+				else if (tmpOffsetX > mMinimumDistance)
+				{
+					mSlidingDirection = Direction.RIGHT;
+				}
+				else if (tmpOffsetY < - mMinimumDistance)
+				{
+					mSlidingDirection = Direction.TOP;
+				}
+				else if (tmpOffsetY > mMinimumDistance)
+				{
+					mSlidingDirection = Direction.BOTTOM;
+				}
+				
+				// If directiopn changed => slide start
+				if (mSlidingDirection != Direction.NONE)
+				{
+					// Replace the press position by the slide start position
+					mPressX = pTouchAreaLocalX;
+					mPressY = pTouchAreaLocalY;
+					
+					for(ISlideDetectorListener iListener : mSlideListeners)
+						iListener.onSlideStart(mSlidingDirection, mCurrentX - mPressX, mCurrentY - mPressY);
+				}
 			}
 		}
 		
 		super.executeOnMoveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
 	}
-	
-	
+	*/
+	/*
 	@Override
 	protected void executeOnReleaseListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside)
 	{
-		float tmpOffsetX = mPressX - pTouchAreaLocalX;
-		float tmpOffsetY = mPressY - pTouchAreaLocalY;
-		
 		if (mSlidingDirection != Direction.NONE)
 		{
+			float tmpOffsetX = mPressX - mCurrentX;
+			float tmpOffsetY = mPressY - mCurrentY;
+			
 			for(ISlideDetectorListener iListener : mSlideListeners)
 				iListener.onSlideEnd(mSlidingDirection, tmpOffsetX, tmpOffsetY);
-			
-			// Force the offsets to zero
-			mPressX = pTouchAreaLocalX;
-			mPressY = pTouchAreaLocalY;
 			
 			mSlidingDirection = Direction.NONE;
 		}
@@ -132,5 +191,6 @@ public class SlideDetector extends PointerDetector
 		super.executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
 	}
 	
+	*/
 	
 }

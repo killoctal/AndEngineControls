@@ -17,8 +17,8 @@ import com.killoctal.andenginecontrols.detectors.PointerDetector;
  */
 public class PushButton extends Rectangle
 {
-	
 	private PointerDetector mDetector;
+	
 	
 	public PushButton(VertexBufferObjectManager pVertexBufferObjectManager)
 	{
@@ -26,28 +26,34 @@ public class PushButton extends Rectangle
 	}
 	
 	
-	public PushButton(float pX, float pY, float pWidth, float pHeight,VertexBufferObjectManager pVertexBufferObjectManager)
+	public PushButton(float pX, float pY, float pWidth, float pHeight, VertexBufferObjectManager pVertexBufferObjectManager)
+	{
+		this(pX, pY, pWidth, pHeight, pVertexBufferObjectManager, new PointerDetector());
+	}
+	
+	
+	public PushButton(float pX, float pY, float pWidth, float pHeight, VertexBufferObjectManager pVertexBufferObjectManager, PointerDetector pPointerDetector)
 	{
 		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
 		// Creates the default detector
-		setClickDetector( new PointerDetector() );
+		setClickDetector(pPointerDetector);
 		
 		// Auto add listeners
 		if (this instanceof PointerDetector.IClickListener)
 		{
-			getPointerDetector().mClickListeners.add((PointerDetector.IClickListener)this);
+			mDetector.mClickListeners.add((PointerDetector.IClickListener)this);
 		}
 		
 		if (this instanceof PointerDetector.IMoveListener)
 		{
-			getPointerDetector().mMoveListeners.add((PointerDetector.IMoveListener)this);
+			mDetector.mMoveListeners.add((PointerDetector.IMoveListener)this);
 		}
 	}
 	
 	
 	
-	final public PointerDetector getPointerDetector()
+	final public PointerDetector getDetector()
 	{
 		return mDetector;
 	}

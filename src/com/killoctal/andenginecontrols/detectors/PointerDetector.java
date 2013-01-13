@@ -9,13 +9,13 @@ public class PointerDetector
 {
 	
 	public static interface IClickListener {
-		/// Executed when pressed and released
-		void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+		/// Executed when pressed and released inside
+		void onClick(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, long pPressDuration);
 		
 		/// Executed when pressed (~ACTION_DOWN)
 		void onPress(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
 		
-		/// Executed when released inside (~ACTION_UP)
+		/// Executed when released inside (~ACTION_UP) or leaved
 		void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside);
 	}
 	
@@ -24,11 +24,11 @@ public class PointerDetector
 		/// Executed when pointer is moving
 		void onMove(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside);
 		
-		/// Executed when dragging inside (you should verify button state with isPressed()
-		void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+		/// Executed when dragging inside
+		void onEnter(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pIsPressed);
 		
-		/// Executed when dragging out (you should verify button state with isPressed()
-		void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY);
+		/// Executed when dragging out
+		void onLeave(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pIsPressed);
 	}
 	
 	
@@ -47,6 +47,9 @@ public class PointerDetector
 	private boolean mIsModal;
 	private boolean mIsModalThisTime;
 	private boolean mIsModalTotal;
+	
+	private long mPressTime;
+	protected float mPressX, mPressY;
 	
 	/**
 	 * @name Listeners
@@ -110,6 +113,10 @@ public class PointerDetector
 		return mIsLeft;
 	}*/
 	
+	final public void freePointer()
+	{
+		mPointerID = TouchEvent.INVALID_POINTER_ID;
+	}
 
 	final public void setModal(boolean pModal, boolean pTotal)
 	{
@@ -144,7 +151,16 @@ public class PointerDetector
 	{
 		mIsPressed = pPressed;
 	}
-
+	
+	
+	public float getPressX()
+	{
+		return mPressX;
+	}
+	public float getPressY()
+	{
+		return mPressY;
+	}
 	
 	
 	
@@ -165,8 +181,13 @@ public class PointerDetector
 				// Useless check but for the principe
 				if (tmpInside)
 				{
+					mPressTime = System.currentTimeMillis();
 					mIsPressed = true;
 					mIsPointerInside = true;
+					
+					// Pointer press position
+					mPressX = pTouchAreaLocalX;
+					mPressY = pTouchAreaLocalY;
 					
 					// Execute the listners
 					executeOnPressListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
@@ -177,22 +198,24 @@ public class PointerDetector
 				// Execute the listners
 				executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
 				
-				// If pressed and inside => click
-				if (tmpInside && mIsPressed)
+				if (tmpInside)
 				{
-					mIsPressed = false;
-					mIsPointerInside = false;
-					
-					// Execute the listners
-					executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					// If pressed => click
+					if (mIsPressed)
+					{
+						mIsPressed = false;
+						mIsPointerInside = false;
+						
+						// Execute the listners
+						executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, System.currentTimeMillis() - mPressTime);
+					}
 				}
 				
 				// Free the catched pointer
-				mPointerID = TouchEvent.INVALID_POINTER_ID;
+				freePointer();
 			}
 			else if (pSceneTouchEvent.isActionMove())
 			{
-				
 				if (tmpInside)
 				{
 					if (! mIsPointerInside)
@@ -200,7 +223,7 @@ public class PointerDetector
 						mIsPointerInside = true;
 						
 						// Execute the listners
-						executeOnEnterListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						executeOnEnterListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, mIsPressed);
 					}
 				}
 				else
@@ -210,7 +233,16 @@ public class PointerDetector
 						mIsPointerInside = false;
 						
 						// Execute the listners
-						executeOnLeaveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+						executeOnLeaveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, mIsPressed);
+						
+						// If pressed, release the button
+						if (mIsPressed)
+						{
+							mIsPressed = false;
+							
+							// Execute the listners
+							executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, false);
+						}
 					}
 				}
 				
@@ -241,10 +273,10 @@ public class PointerDetector
 	
 	
 	
-	protected void executeOnClickListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
+	protected void executeOnClickListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, long pPressDuration)
 	{
 		for(IClickListener iListener : mClickListeners)
-			iListener.onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			iListener.onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pPressDuration);
 	}
 	
 	protected void executeOnPressListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
@@ -265,16 +297,16 @@ public class PointerDetector
 			iListener.onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
 	}
 	
-	protected void executeOnEnterListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
+	protected void executeOnEnterListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pIsPressed)
 	{
 		for(IMoveListener iListener : mMoveListeners)
-			iListener.onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			iListener.onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pIsPressed);
 	}
 	
-	protected void executeOnLeaveListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
+	protected void executeOnLeaveListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pIsPressed)
 	{
 		for(IMoveListener iListener : mMoveListeners)
-			iListener.onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			iListener.onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pIsPressed);
 	}
 	
 	

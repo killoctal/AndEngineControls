@@ -39,6 +39,8 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	
 	private boolean mScrolling;
 	
+	float tmpMaxScrollX;
+	float tmpMaxScrollY;
 	
 	/**
 	 * @brief Constructor
@@ -74,13 +76,16 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		
 		mScrollDetector = new ScrollDetector(10, this);
 		
+		
 		mScene.registerTouchArea(this);
+		
+		tmpMaxScrollX = tmpMaxScrollY = 0;
 	}
 	
 	
 	final public boolean isScrolling()
 	{
-		return mScrolling;
+		return mScrolling;// && (tmpMaxScrollX == 0f || ) && tmpMaxScrollY != 0f;
 	}
 	
 	
@@ -130,14 +135,14 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	public void updateScroll()
 	{
 		// Checking the applyed scroll
-		float tmpMaxScrollX = mWidth -  (mColsPos.get(mColsPos.size()-1, 0f) + mColsWidths.get(mColsWidths.size()-1, 0f));
-		float tmpMaxScrollY = mHeight - (mRowsPos.get(mRowsPos.size()-1, 0f) + mRowsHeights.get(mRowsHeights.size()-1, 0f));
+		tmpMaxScrollX = mWidth -  (mColsPos.get(mColsPos.size()-1, 0f) + mColsWidths.get(mColsWidths.size()-1, 0f));
+		tmpMaxScrollY = mHeight - (mRowsPos.get(mRowsPos.size()-1, 0f) + mRowsHeights.get(mRowsHeights.size()-1, 0f));
 		
-		if (mScrollX > 0)
+		if (mScrollX > 0f)
 		{
 			mScrollX = 0;
 		}
-		if (mScrollY > 0)
+		if (mScrollY > 0f)
 		{
 			mScrollY = 0;
 		}
@@ -154,9 +159,9 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		for(ScrollableMenuItem iItem : mItems)
 		{
 			iItem.setPosition(
-					mScrollX + mColsPos.get(iItem.mColumn, 0f),
-					mScrollY + mRowsPos.get(iItem.mRow, 0f)
-					);
+				mScrollX + mColsPos.get(iItem.mColumn, 0f),
+				mScrollY + mRowsPos.get(iItem.mRow, 0f)
+				);
 		}
 		
 	}
