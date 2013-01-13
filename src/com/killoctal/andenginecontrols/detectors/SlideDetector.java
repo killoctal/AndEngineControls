@@ -83,15 +83,11 @@ public class SlideDetector extends ScrollDetector
 			mSlidingDirection = Direction.BOTTOM;
 		}
 		
-		// Replace the press position by the slide start position
-		mPressX = pOffsetX;
-		mPressY = pOffsetY;
-		
 		// If directiopn changed => slide start
 		if (mSlidingDirection != Direction.NONE)
 		{
 			for(ISlideDetectorListener iListener : mSlideListeners)
-				iListener.onSlideStart(mSlidingDirection, mCurrentX - mPressX, mCurrentY - mPressY);
+				iListener.onSlideStart(mSlidingDirection, pOffsetX, pOffsetY);
 		}
 	}
 	

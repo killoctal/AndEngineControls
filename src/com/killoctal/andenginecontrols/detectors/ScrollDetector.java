@@ -136,7 +136,15 @@ public class ScrollDetector extends PointerDetector
 			
 			executeOnScrollFinishListeners(tmpOffsetX, tmpOffsetY);
 		}
-		mIsScrolling = false;
+		
+		if (mIsScrolling)
+		{
+			mIsScrolling = false;
+			if (mNoClick)
+			{
+				setPressed(false);
+			}
+		}
 		super.executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
 	}
 	
@@ -159,14 +167,18 @@ public class ScrollDetector extends PointerDetector
 		for(IScrollDetectorListener iListener : mScrollListeners)
 			iListener.onScrollFinish(pOffsetX, pOffsetY);
 	}
-	
+	/*
 	@Override
 	protected void executeOnClickListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, long pPressDuration)
 	{
-		if (! mNoClick)
+		if (mIsScrolling && mNoClick)
+		{
+			// Intercept clicking
+		}
+		else
 		{
 			super.executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pPressDuration);
 		}
-	}
+	}*/
 }
 

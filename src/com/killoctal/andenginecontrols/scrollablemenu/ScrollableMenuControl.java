@@ -3,11 +3,10 @@ package com.killoctal.andenginecontrols.scrollablemenu;
 import android.util.SparseArray;
 import java.util.ArrayList;
 import org.andengine.entity.primitive.Rectangle;
-import org.andengine.entity.scene.Scene;
 import org.andengine.input.touch.TouchEvent;
-import org.andengine.input.touch.detector.ScrollDetector;
-import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import com.killoctal.andenginecontrols.detectors.SlideDetector;
+import com.killoctal.andenginecontrols.detectors.SlideDetector.Direction;
 
 
 /**
@@ -17,27 +16,26 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
  * @warning If buttons must have special touch events, create them before the menu
  *          control, or use a custom registerTouchArea for this control.
  */
-public class ScrollableMenuControl extends Rectangle implements IScrollDetectorListener
+public class ScrollableMenuControl extends Rectangle implements SlideDetector.ISlideDetectorListener
 {
-	final private Scene mScene;
-	
 	//private ScrollableMenuItem mRemovingItem;
 	
 	final private ArrayList<ScrollableMenuItem> mItems;
 	
 	/// The current scroll (call updateScroll() if you change manually)
 	public float mScrollX = 0, mScrollY = 0;
+	private float mScrollStartX, mScrollStartY;
 	
 	public float mDefaultColumnWidth, mDefaultRowHeight;
 	
 	/// The scroll detector (for set minimal scroll distance)
-	final public ScrollDetector mScrollDetector;
+	final private SlideDetector mSlideDetector;
 	
 	
 	private final SparseArray<Float> mRowsHeights, mColsWidths;
 	private final SparseArray<Float> mColsPos, mRowsPos;
 	
-	private boolean mScrolling;
+	private boolean mIsScrolling;
 	
 	float tmpMaxScrollX;
 	float tmpMaxScrollY;
@@ -54,19 +52,17 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	 * @param pVertexBufferObjectManager
 	 * @param pScene
 	 */
-	public ScrollableMenuControl(float pX, float pY, float pWidth, float pHeight, float pDefaultColumnWidth, float pDefaultRowHeight,
-			VertexBufferObjectManager pVertexBufferObjectManager, Scene pScene)
+	public ScrollableMenuControl(float pX, float pY, float pWidth, float pHeight,
+			float pDefaultColumnWidth, float pDefaultRowHeight,
+			VertexBufferObjectManager pVertexBufferObjectManager)
 	{
 		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
-		mScene = pScene;
 		mItems = new ArrayList<ScrollableMenuItem>();
 		
 		
 		mDefaultColumnWidth = pDefaultColumnWidth;
 		mDefaultRowHeight = pDefaultRowHeight;
-		
-		mScrolling = false;
 		
 		mRowsHeights = new SparseArray<Float>();
 		mColsWidths = new SparseArray<Float>();
@@ -74,20 +70,26 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		mColsPos = new SparseArray<Float>();
 		mRowsPos = new SparseArray<Float>();
 		
-		mScrollDetector = new ScrollDetector(10, this);
-		
-		
-		mScene.registerTouchArea(this);
+		mSlideDetector = new SlideDetector(10, this);
+		mSlideDetector.mSlideListeners.add(this);
 		
 		tmpMaxScrollX = tmpMaxScrollY = 0;
+		
+		mScrollStartX = mScrollStartY = 0;
+		
+		mIsScrolling = false;
 	}
 	
 	
 	final public boolean isScrolling()
 	{
-		return mScrolling;// && (tmpMaxScrollX == 0f || ) && tmpMaxScrollY != 0f;
+		return mIsScrolling;
 	}
 	
+	final public SlideDetector getDetector()
+	{
+		return mSlideDetector;
+	}
 	
 	public int rowCount()
 	{
@@ -129,42 +131,6 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	}
 	
 	
-	/**
-	 * @brief Update only positions
-	 */
-	public void updateScroll()
-	{
-		// Checking the applyed scroll
-		tmpMaxScrollX = mWidth -  (mColsPos.get(mColsPos.size()-1, 0f) + mColsWidths.get(mColsWidths.size()-1, 0f));
-		tmpMaxScrollY = mHeight - (mRowsPos.get(mRowsPos.size()-1, 0f) + mRowsHeights.get(mRowsHeights.size()-1, 0f));
-		
-		if (mScrollX > 0f)
-		{
-			mScrollX = 0;
-		}
-		if (mScrollY > 0f)
-		{
-			mScrollY = 0;
-		}
-		if (mScrollX < tmpMaxScrollX)
-		{
-			mScrollX = tmpMaxScrollX;
-		}
-		if (mScrollY < tmpMaxScrollY)
-		{
-			mScrollY = tmpMaxScrollY;
-		}
-		
-		// Apply
-		for(ScrollableMenuItem iItem : mItems)
-		{
-			iItem.setPosition(
-				mScrollX + mColsPos.get(iItem.mColumn, 0f),
-				mScrollY + mRowsPos.get(iItem.mRow, 0f)
-				);
-		}
-		
-	}
 	
 	
 	
@@ -192,7 +158,6 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 	{
 		if (iItem.getParent() == this)
 		{
-			mScene.unregisterTouchArea(iItem);
 			iItem.detachSelf();
 		}
 	}
@@ -248,59 +213,137 @@ public class ScrollableMenuControl extends Rectangle implements IScrollDetectorL
 		
 
 		mItems.add(pItem);
-		pItem.mScrollControl = this;
 		attachChild(pItem);
 		
 		updateMenu();
+	}
+	
+	
+
+	/**
+	 * @brief Update only positions
+	 */
+	public void updateScroll()
+	{
+		// Checking the applyed scroll
+		tmpMaxScrollX = mWidth -  (mColsPos.get(mColsPos.size()-1, 0f) + mColsWidths.get(mColsWidths.size()-1, 0f));
+		tmpMaxScrollY = mHeight - (mRowsPos.get(mRowsPos.size()-1, 0f) + mRowsHeights.get(mRowsHeights.size()-1, 0f));
 		
-		// Placing the button touch area just before the control
-		int tmpIndex = mScene.getTouchAreas().indexOf(this);
-		if (tmpIndex != -1)
+		if (mScrollX > 0f)
 		{
-			mScene.getTouchAreas().add(tmpIndex, pItem);
+			mScrollX = 0;
+		}
+		if (mScrollY > 0f)
+		{
+			mScrollY = 0;
+		}
+		if (mScrollX < tmpMaxScrollX)
+		{
+			mScrollX = tmpMaxScrollX;
+		}
+		if (mScrollY < tmpMaxScrollY)
+		{
+			mScrollY = tmpMaxScrollY;
+		}
+		
+		// Apply
+		for(ScrollableMenuItem iItem : mItems)
+		{
+			iItem.setPosition(
+				mScrollX + mColsPos.get(iItem.mColumn, 0f),
+				mScrollY + mRowsPos.get(iItem.mRow, 0f)
+				);
 		}
 	}
 	
 	
-	@Override
-	public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID, float pDistanceX, float pDistanceY)
+	/*
+	public void scrollTo(float pScrollX, float pScrollY)
 	{
-		mScrolling = true;
-		
-		onScroll(pScollDetector, pPointerID, pDistanceX, pDistanceY);
-	}
-	
-	
-	@Override
-	public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID, float pDistanceX, float pDistanceY)
-	{
-		onScroll(pScollDetector, pPointerID, pDistanceX, pDistanceY);
-		
-		mScrolling = false;
-	}
-	
-	
-	@Override
-	public void onScroll(ScrollDetector pScollDetector, int pPointerID, float pDistanceX, float pDistanceY)
-	{
-		mScrollX += pDistanceX;
-		mScrollY += pDistanceY;
+		mScrollX = pScrollX;
+		mScrollY = pScrollY;
 		
 		updateScroll();
+		
+		mScrollStartX = mScrollX;
+		mScrollStartY = mScrollY;
 	}
-	
-	
+	*/
 	
 	
 	@Override
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		// Transmit the event
-		mScrollDetector.onTouchEvent(pSceneTouchEvent);
+		for(ScrollableMenuItem iItem : mItems)
+		{
+			if (isScrolling())
+			{
+				if (iItem.getDetector().isPressed())
+				{
+					iItem.getDetector().setPressed(false);
+				}
+			}
+			
+			float[] tmpNewLocalCoords = iItem.convertSceneToLocalCoordinates(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+			iItem.onAreaTouched(pSceneTouchEvent, tmpNewLocalCoords[0], tmpNewLocalCoords[1]);
+		}
 		
-		// If touched, the event is always stopped
-		return true;
+		// Transmit the event
+		return mSlideDetector.handleTouchEvent(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 	}
+
+
+	@Override
+	public void onSlideStart(Direction pDirection, float pOffsetX, float pOffsetY)
+	{
+		mIsScrolling = true;
+		switch(pDirection)
+		{
+			case TOP:
+			case BOTTOM:
+				if (tmpMaxScrollY == 0)
+				{
+					mIsScrolling = false;
+				}
+				break;
+				
+			case LEFT:
+			case RIGHT:
+				if (tmpMaxScrollX == 0)
+				{
+					mIsScrolling = false;
+				}
+				break;
+	
+			case NONE: break;
+		}
+		
+		onSlide(pDirection, pOffsetX, pOffsetY);
+	}
+
+
+	@Override
+	public void onSlide(Direction pDirection, float pOffsetX, float pOffsetY)
+	{
+		mScrollX = mScrollStartX + pOffsetX;
+		mScrollY = mScrollStartY + pOffsetY;
+		
+		updateScroll();
+	}
+
+
+	@Override
+	public void onSlideEnd(Direction pDirection, float pOffsetX, float pOffsetY)
+	{
+		onSlide(pDirection, pOffsetX, pOffsetY);
+		
+		mIsScrolling = false;
+		
+		mScrollStartX = mScrollX;
+		mScrollStartY = mScrollY;
+	}
+
+
 	
 }
 

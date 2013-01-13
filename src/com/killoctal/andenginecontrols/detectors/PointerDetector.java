@@ -150,6 +150,7 @@ public class PointerDetector
 	public void setPressed(boolean pPressed)
 	{
 		mIsPressed = pPressed;
+		mIsPointerInside = pPressed;
 	}
 	
 	
@@ -182,8 +183,7 @@ public class PointerDetector
 				if (tmpInside)
 				{
 					mPressTime = System.currentTimeMillis();
-					mIsPressed = true;
-					mIsPointerInside = true;
+					setPressed(true);
 					
 					// Pointer press position
 					mPressX = pTouchAreaLocalX;
@@ -203,8 +203,7 @@ public class PointerDetector
 					// If pressed => click
 					if (mIsPressed)
 					{
-						mIsPressed = false;
-						mIsPointerInside = false;
+						setPressed(false);
 						
 						// Execute the listners
 						executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, System.currentTimeMillis() - mPressTime);
@@ -238,7 +237,7 @@ public class PointerDetector
 						// If pressed, release the button
 						if (mIsPressed)
 						{
-							mIsPressed = false;
+							setPressed(false);
 							
 							// Execute the listners
 							executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, false);
