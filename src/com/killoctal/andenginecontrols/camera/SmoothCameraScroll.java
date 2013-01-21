@@ -2,7 +2,11 @@ package com.killoctal.andenginecontrols.camera;
 
 import org.andengine.engine.camera.ZoomCamera;
 import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.entity.Entity;
+import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
+import org.andengine.input.touch.TouchEvent;
+
 import com.killoctal.andenginecontrols.detectors.ScrollDetector;
 import com.killoctal.andenginecontrols.utils.ACMaths;
 
@@ -47,7 +51,7 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 			@Override
 			public void onUpdate(float pSecondsElapsed)
 			{
-				if (mOffsetX != 0 || mOffsetY != 0)
+				if ((int)mOffsetX != 0 || (int)mOffsetY != 0)
 				{
 					mCamera.offsetCenter(mOffsetX, mOffsetY);
 					
@@ -58,8 +62,6 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 			@Override
 			public void reset(){}
 		});
-		
-		
 	}
 	
 	
@@ -72,7 +74,7 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 	@Override
 	public void onScrollStart(float pDistanceX, float pDistanceY)
 	{
-		onScroll(pDistanceX, pDistanceY);
+		//onScroll(pDistanceX, pDistanceY);
 	}
 	
 	
@@ -91,6 +93,6 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 	@Override
 	public void onScrollFinish(float pDistanceX, float pDistanceY)
 	{
-		onScroll(pDistanceX, pDistanceY);
+		//onScroll(pDistanceX, pDistanceY);
 	}
 }
