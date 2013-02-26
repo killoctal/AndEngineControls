@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.input.touch.TouchEvent;
 
+/**
+ * @brief A pointer detector class for fix ACTION_UP and ACTION_MOVE problems
+ * 
+ * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true) 
+ */
 public class PointerDetector
 {
 	
@@ -87,84 +92,12 @@ public class PointerDetector
 	}
 	
 	
-	/*public void catchPointer(int pPointerID)
-	{
-		mPointerID = pPointerID;
-	}*/
-
-	public void setEnabled(boolean pEnabled)
-	{
-		mIsEnabled = pEnabled;
-	}
-	
-	public boolean isEnabled()
-	{
-		return mIsEnabled;
-	}
-	
-	
-	final public boolean isPressed()
-	{
-		return mIsPressed;
-	}
-	/*
-	final public boolean isLeft()
-	{
-		return mIsLeft;
-	}*/
-	
-	final public void freePointer()
-	{
-		mPointerID = TouchEvent.INVALID_POINTER_ID;
-	}
-
-	final public void setModal(boolean pModal, boolean pTotal)
-	{
-		mIsModal = pModal;
-		mIsModalTotal = pTotal;
-	}
-
-	final public void setModal(boolean pModal)
-	{
-		setModal(pModal, true);
-	}
-	
-	
-	
-	final public boolean isModal()
-	{
-		return mIsModal;
-	}
-	
-	final public void setModalThisTime()
-	{
-		mIsModalThisTime = true;
-	}
-	
 	
 	/**
+	 * @brief Handle the touch event
 	 * 
-	 * @param pPressed
-	 * @note This does not execute any "on...()" method
+	 * The onTouchArea of the object must execute this method
 	 */
-	public void setPressed(boolean pPressed)
-	{
-		mIsPressed = pPressed;
-		mIsPointerInside = pPressed;
-	}
-	
-	
-	public float getPressX()
-	{
-		return mPressX;
-	}
-	public float getPressY()
-	{
-		return mPressY;
-	}
-	
-	
-	
 	public boolean handleTouchEvent(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
 		boolean tmpInside = mTouchArea == null || mTouchArea.contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
@@ -268,6 +201,82 @@ public class PointerDetector
 		
 		return false;
 	}
+	
+	
+	
+	
+	
+	
+	
+	public void setEnabled(boolean pEnabled)
+	{
+		mIsEnabled = pEnabled;
+	}
+	
+	public boolean isEnabled()
+	{
+		return mIsEnabled;
+	}
+	
+	
+	final public boolean isPressed()
+	{
+		return mIsPressed;
+	}
+	
+	
+	
+	final public void freePointer()
+	{
+		mPointerID = TouchEvent.INVALID_POINTER_ID;
+	}
+	
+	
+	final public void setModal(boolean pModal, boolean pTotal)
+	{
+		mIsModal = pModal;
+		mIsModalTotal = pTotal;
+	}
+
+	final public void setModal(boolean pModal)
+	{
+		setModal(pModal, true);
+	}
+	
+	
+	
+	final public boolean isModal()
+	{
+		return mIsModal;
+	}
+	
+	final public void setModalThisTime()
+	{
+		mIsModalThisTime = true;
+	}
+	
+	
+	/**
+	 * 
+	 * @param pPressed
+	 * @note This does not execute any "on...()" method
+	 */
+	public void setPressed(boolean pPressed)
+	{
+		mIsPressed = pPressed;
+		mIsPointerInside = pPressed;
+	}
+	
+	
+	public float getPressX()
+	{
+		return mPressX;
+	}
+	public float getPressY()
+	{
+		return mPressY;
+	}
+	
 	
 	
 	
