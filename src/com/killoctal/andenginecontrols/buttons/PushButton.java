@@ -5,6 +5,8 @@ import org.andengine.entity.primitive.Rectangle;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import com.killoctal.andenginecontrols.detectors.PointerDetector;
+import com.killoctal.andenginecontrols.detectors.PointerDetector.IClickListener;
+import com.killoctal.andenginecontrols.detectors.PointerDetector.IMoveListener;
 
 /**
  * @brief A simple push button
@@ -42,12 +44,12 @@ public class PushButton extends Rectangle
 		// Auto add listeners
 		if (this instanceof PointerDetector.IClickListener)
 		{
-			mDetector.mClickListeners.add((PointerDetector.IClickListener)this);
+			mDetector.mClickListener = (IClickListener) this;
 		}
 		
 		if (this instanceof PointerDetector.IMoveListener)
 		{
-			mDetector.mMoveListeners.add((PointerDetector.IMoveListener)this);
+			mDetector.mMoveListener = (IMoveListener) this;
 		}
 	}
 	

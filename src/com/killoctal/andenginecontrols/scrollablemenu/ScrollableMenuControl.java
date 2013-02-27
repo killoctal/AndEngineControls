@@ -60,7 +60,6 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		
 		mItems = new ArrayList<ScrollableMenuItem>();
 		
-		
 		mDefaultColumnWidth = pDefaultColumnWidth;
 		mDefaultRowHeight = pDefaultRowHeight;
 		
@@ -71,7 +70,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		mRowsPos = new SparseArray<Float>();
 		
 		mSlideDetector = new SlideDetector(10, this);
-		mSlideDetector.mSlideListeners.add(this);
+		mSlideDetector.mSlideListener = this;
 		
 		tmpMaxScrollX = tmpMaxScrollY = 0;
 		

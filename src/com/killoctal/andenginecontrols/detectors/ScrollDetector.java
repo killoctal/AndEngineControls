@@ -1,6 +1,5 @@
 package com.killoctal.andenginecontrols.detectors;
 
-import java.util.ArrayList;
 
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.input.touch.TouchEvent;
@@ -20,7 +19,7 @@ public class ScrollDetector extends PointerDetector
 	 * @name Listeners
 	 * @{
 	 */
-	final public ArrayList<IScrollDetectorListener> mScrollListeners;
+	public IScrollDetectorListener mScrollListener;
 	/**
 	 * @}
 	 */
@@ -51,7 +50,7 @@ public class ScrollDetector extends PointerDetector
 		super(pTouchArea);
 		mMinimumDistance = pMinimumDistance;
 		
-		mScrollListeners = new ArrayList<ScrollDetector.IScrollDetectorListener>();
+		mScrollListener = null;
 		mPressX = 0;
 		mPressY = 0;
 		mCanScroll = false;
@@ -152,21 +151,22 @@ public class ScrollDetector extends PointerDetector
 	
 	protected void executeOnScrollStartListeners(float pOffsetX, float pOffsetY)
 	{
-		for(IScrollDetectorListener iListener : mScrollListeners)
-			iListener.onScrollStart(pOffsetX, pOffsetY);
+		if (mScrollListener != null)
+			mScrollListener.onScrollStart(pOffsetX, pOffsetY);
 	}
 	
 	protected void executeOnScrollListeners(float pOffsetX, float pOffsetY)
 	{
-		for(IScrollDetectorListener iListener : mScrollListeners)
-			iListener.onScroll(pOffsetX, pOffsetY);
+		if (mScrollListener != null)
+			mScrollListener.onScroll(pOffsetX, pOffsetY);
 	}
 	
 	protected void executeOnScrollFinishListeners(float pOffsetX, float pOffsetY)
 	{
-		for(IScrollDetectorListener iListener : mScrollListeners)
-			iListener.onScrollFinish(pOffsetX, pOffsetY);
+		if (mScrollListener != null)
+			mScrollListener.onScrollFinish(pOffsetX, pOffsetY);
 	}
+	
 	/*
 	@Override
 	protected void executeOnClickListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, long pPressDuration)

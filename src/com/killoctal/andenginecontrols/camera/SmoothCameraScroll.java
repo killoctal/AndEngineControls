@@ -2,10 +2,7 @@ package com.killoctal.andenginecontrols.camera;
 
 import org.andengine.engine.camera.ZoomCamera;
 import org.andengine.engine.handler.IUpdateHandler;
-import org.andengine.entity.Entity;
-import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
-import org.andengine.input.touch.TouchEvent;
 
 import com.killoctal.andenginecontrols.detectors.ScrollDetector;
 import com.killoctal.andenginecontrols.utils.ACMaths;
@@ -41,7 +38,7 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 		
 		// Creates the pinch detector
 		mScrollDetector = new ScrollDetector();
-		mScrollDetector.mScrollListeners.add(this);
+		mScrollDetector.mScrollListener = this;
 		
 		// Init the target
 		mOffsetX = mOffsetY = 0;

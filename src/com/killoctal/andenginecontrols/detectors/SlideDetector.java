@@ -1,6 +1,5 @@
 package com.killoctal.andenginecontrols.detectors;
 
-import java.util.ArrayList;
 import org.andengine.entity.scene.ITouchArea;
 
 public class SlideDetector extends ScrollDetector
@@ -30,7 +29,7 @@ public class SlideDetector extends ScrollDetector
 	 * @name Listeners
 	 * @{
 	 */
-	final public ArrayList<ISlideDetectorListener> mSlideListeners;
+	public ISlideDetectorListener mSlideListener;
 	/**
 	 * @}
 	 */
@@ -49,7 +48,7 @@ public class SlideDetector extends ScrollDetector
 	{
 		super(pMinimumDistance, pTouchArea);
 		
-		mSlideListeners = new ArrayList<SlideDetector.ISlideDetectorListener>();
+		mSlideListener = null;
 		
 		mSlidingDirection = Direction.NONE;
 		
@@ -86,8 +85,8 @@ public class SlideDetector extends ScrollDetector
 		// If directiopn changed => slide start
 		if (mSlidingDirection != Direction.NONE)
 		{
-			for(ISlideDetectorListener iListener : mSlideListeners)
-				iListener.onSlideStart(mSlidingDirection, pOffsetX, pOffsetY);
+			if (mSlideListener != null)
+				mSlideListener.onSlideStart(mSlidingDirection, pOffsetX, pOffsetY);
 		}
 	}
 	
@@ -97,8 +96,8 @@ public class SlideDetector extends ScrollDetector
 	{
 		super.executeOnScrollListeners(pOffsetX, pOffsetY);
 		
-		for(ISlideDetectorListener iListener : mSlideListeners)
-			iListener.onSlide(mSlidingDirection, pOffsetX, pOffsetY);
+		if (mSlideListener != null)
+			mSlideListener.onSlide(mSlidingDirection, pOffsetX, pOffsetY);
 	}
 	
 	
@@ -109,12 +108,14 @@ public class SlideDetector extends ScrollDetector
 		
 		if (mSlidingDirection != Direction.NONE)
 		{
-			for(ISlideDetectorListener iListener : mSlideListeners)
-				iListener.onSlideEnd(mSlidingDirection, pOffsetX, pOffsetY);
+			if (mSlideListener != null)
+				mSlideListener.onSlideEnd(mSlidingDirection, pOffsetX, pOffsetY);
 			
 			mSlidingDirection = Direction.NONE;
 		}
 	}
+	
+	
 	/*
 	@Override
 	protected void executeOnMoveListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside)
