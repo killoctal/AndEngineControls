@@ -1,6 +1,7 @@
 package com.killoctal.andenginecontrols.detectors;
 
 import org.andengine.entity.scene.ITouchArea;
+import org.andengine.input.touch.TouchEvent;
 
 public class SlideDetector extends ScrollDetector
 {
@@ -15,9 +16,9 @@ public class SlideDetector extends ScrollDetector
 	
 	public static interface ISlideDetectorListener
 	{
-		public void onSlideStart(Direction pDirection, float pOffsetX, float pOffsetY);
-		public void onSlide(Direction pDirection, float pOffsetX, float pOffsetY);
-		public void onSlideEnd(Direction pDirection, float pOffsetX, float pOffsetY);
+		public void onSlideStart(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection);
+		public void onSlide(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection);
+		public void onSlideEnd(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection);
 	}
 	
 	
@@ -62,7 +63,7 @@ public class SlideDetector extends ScrollDetector
 	
 	
 	@Override
-	protected void executeOnScrollStartListeners(float pOffsetX, float pOffsetY)
+	protected void executeOnScrollStartListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
 		// Check if slide has began in a direction
 		if (pOffsetX <= - mMinimumDistance)
@@ -86,30 +87,30 @@ public class SlideDetector extends ScrollDetector
 		if (mSlidingDirection != Direction.NONE)
 		{
 			if (mSlideListener != null)
-				mSlideListener.onSlideStart(mSlidingDirection, pOffsetX, pOffsetY);
+				mSlideListener.onSlideStart(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
 		}
 	}
 	
 	
 	@Override
-	protected void executeOnScrollListeners(float pOffsetX, float pOffsetY)
+	protected void executeOnScrollListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
-		super.executeOnScrollListeners(pOffsetX, pOffsetY);
+		super.executeOnScrollListeners(pSceneTouchEvent, pOffsetX, pOffsetY);
 		
 		if (mSlideListener != null)
-			mSlideListener.onSlide(mSlidingDirection, pOffsetX, pOffsetY);
+			mSlideListener.onSlide(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
 	}
 	
 	
 	@Override
-	protected void executeOnScrollFinishListeners(float pOffsetX, float pOffsetY)
+	protected void executeOnScrollFinishListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
-		super.executeOnScrollFinishListeners(pOffsetX, pOffsetY);
+		super.executeOnScrollFinishListeners(pSceneTouchEvent, pOffsetX, pOffsetY);
 		
 		if (mSlidingDirection != Direction.NONE)
 		{
 			if (mSlideListener != null)
-				mSlideListener.onSlideEnd(mSlidingDirection, pOffsetX, pOffsetY);
+				mSlideListener.onSlideEnd(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
 			
 			mSlidingDirection = Direction.NONE;
 		}

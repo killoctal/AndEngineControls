@@ -9,12 +9,12 @@ public class ScrollDetector extends PointerDetector
 {
 	public static interface IScrollDetectorListener
 	{
-		public void onScrollStart(float pDistanceX, float pDistanceY);
-		public void onScroll(float pDistanceX, float pDistanceY);
-		public void onScrollFinish(float pDistanceX, float pDistanceY);
+		public void onScrollStart(TouchEvent pSceneTouchEvent, float pScrollX, float pScrollY);
+		public void onScroll(TouchEvent pSceneTouchEvent, float pScrollX, float pScrollY);
+		public void onScrollFinish(TouchEvent pSceneTouchEvent, float pScrollX, float pScrollY);
 	}
 	
-
+	
 	/**
 	 * @name Listeners
 	 * @{
@@ -39,10 +39,13 @@ public class ScrollDetector extends PointerDetector
 		this(DEFAULT_MIN_DISTANCE);
 	}
 	
+	
+	
 	public ScrollDetector(float pMinimumDistance)
 	{
 		this(pMinimumDistance, null);
 	}
+	
 	
 	
 	public ScrollDetector(float pMinimumDistance, ITouchArea pTouchArea)
@@ -100,18 +103,15 @@ public class ScrollDetector extends PointerDetector
 			// If slider already started
 			if (mIsScrolling)
 			{
-				executeOnScrollListeners(tmpOffsetX, tmpOffsetY);
+				executeOnScrollListeners(pSceneTouchEvent, tmpOffsetX, tmpOffsetY);
 			}
-			else
+			// Check if slide has began in a direction
+			else if (Math.abs(tmpOffsetX) >= mMinimumDistance || Math.abs(tmpOffsetY) >= mMinimumDistance)
 			{
-				// Check if slide has began in a direction
-				if (Math.abs(tmpOffsetX) >= mMinimumDistance || Math.abs(tmpOffsetY) >= mMinimumDistance)
-				{
-					mIsScrolling = true;
-					
-					// Executes listners (with new offsets)
-					executeOnScrollStartListeners(tmpOffsetX, tmpOffsetY);
-				}
+				mIsScrolling = true;
+				
+				// Executes listners (with new offsets)
+				executeOnScrollStartListeners(pSceneTouchEvent, tmpOffsetX, tmpOffsetY);
 			}
 		}
 		
@@ -133,7 +133,7 @@ public class ScrollDetector extends PointerDetector
 			float tmpOffsetX = mCurrentX - mPressX;
 			float tmpOffsetY = mCurrentY - mPressY;
 			
-			executeOnScrollFinishListeners(tmpOffsetX, tmpOffsetY);
+			executeOnScrollFinishListeners(pSceneTouchEvent, tmpOffsetX, tmpOffsetY);
 		}
 		
 		if (mIsScrolling)
@@ -144,27 +144,28 @@ public class ScrollDetector extends PointerDetector
 				setPressed(false);
 			}
 		}
+		
 		super.executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
 	}
 	
 	
 	
-	protected void executeOnScrollStartListeners(float pOffsetX, float pOffsetY)
+	protected void executeOnScrollStartListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
 		if (mScrollListener != null)
-			mScrollListener.onScrollStart(pOffsetX, pOffsetY);
+			mScrollListener.onScrollStart(pSceneTouchEvent, pOffsetX, pOffsetY);
 	}
 	
-	protected void executeOnScrollListeners(float pOffsetX, float pOffsetY)
+	protected void executeOnScrollListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
 		if (mScrollListener != null)
-			mScrollListener.onScroll(pOffsetX, pOffsetY);
+			mScrollListener.onScroll(pSceneTouchEvent, pOffsetX, pOffsetY);
 	}
 	
-	protected void executeOnScrollFinishListeners(float pOffsetX, float pOffsetY)
+	protected void executeOnScrollFinishListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
 		if (mScrollListener != null)
-			mScrollListener.onScrollFinish(pOffsetX, pOffsetY);
+			mScrollListener.onScrollFinish(pSceneTouchEvent, pOffsetX, pOffsetY);
 	}
 	
 	/*

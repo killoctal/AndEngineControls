@@ -3,7 +3,7 @@ package com.killoctal.andenginecontrols.camera;
 import org.andengine.engine.camera.ZoomCamera;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.entity.scene.Scene;
-
+import org.andengine.input.touch.TouchEvent;
 import com.killoctal.andenginecontrols.detectors.ScrollDetector;
 import com.killoctal.andenginecontrols.utils.ACMaths;
 
@@ -20,14 +20,14 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 	//public float FACTOR_MAX = Float.MAX_VALUE;
 	
 	/// Smooth speed (more = reactive, less = slow)
-	public float SPEED = 15;
+	public float SPEED = 15, TFACT = 8;
 	/**
 	 * @}
 	 */
-	private ScrollDetector mScrollDetector;
+	final private ScrollDetector mScrollDetector;
 	
 	
-	private float mOffsetX, mOffsetY;
+	protected float mOffsetX, mOffsetY;
 	
 	/// The camera
 	final private ZoomCamera mCamera;
@@ -37,14 +37,27 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 		mCamera = pCam;
 		
 		// Creates the pinch detector
-		mScrollDetector = new ScrollDetector();
+		mScrollDetector = new ScrollDetector() {
+			
+			/**
+			 * @brief Prevents camera shaking on scroll start
+			 */
+			@Override
+			protected void executeOnScrollStartListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
+			{
+				mPressX = mCurrentX;
+				mPressY = mCurrentY;
+				super.executeOnScrollStartListeners(pSceneTouchEvent, 0, 0);
+			}
+		};
+		
 		mScrollDetector.mScrollListener = this;
 		
 		// Init the target
 		mOffsetX = mOffsetY = 0;
 		
 		// Smooth management is made with an update handler 
-		pScene.registerUpdateHandler( new IUpdateHandler(){
+		pScene.registerUpdateHandler(new IUpdateHandler() {
 			@Override
 			public void onUpdate(float pSecondsElapsed)
 			{
@@ -52,8 +65,8 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 				{
 					mCamera.offsetCenter(mOffsetX, mOffsetY);
 					
-					mOffsetX = ACMaths.smoothValue(0, mOffsetX, SPEED, 4);
-					mOffsetY = ACMaths.smoothValue(0, mOffsetY, SPEED, 4);
+					mOffsetX = ACMaths.smoothValue(0, mOffsetX, SPEED, 8);
+					mOffsetY = ACMaths.smoothValue(0, mOffsetY, SPEED, 8);
 				}
 			}
 			@Override
@@ -69,15 +82,12 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 	
 	
 	@Override
-	public void onScrollStart(float pDistanceX, float pDistanceY)
-	{
-		//onScroll(pDistanceX, pDistanceY);
-	}
+	public void onScrollStart(TouchEvent pSceneTouchEvent, float pDistanceX, float pDistanceY) {}
 	
 	
 	
 	@Override
-	public void onScroll(float pDistanceX, float pDistanceY)
+	public void onScroll(TouchEvent pSceneTouchEvent, float pDistanceX, float pDistanceY)
 	{
 		final float zoomFactor = mCamera.getZoomFactor();
 		
@@ -86,10 +96,8 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 	}
 	
 	
-	
 	@Override
-	public void onScrollFinish(float pDistanceX, float pDistanceY)
-	{
-		//onScroll(pDistanceX, pDistanceY);
-	}
+	public void onScrollFinish(TouchEvent pSceneTouchEvent, float pDistanceX, float pDistanceY) {}
+	
+
 }

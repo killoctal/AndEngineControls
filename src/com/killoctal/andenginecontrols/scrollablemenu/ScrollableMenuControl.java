@@ -293,7 +293,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 
 
 	@Override
-	public void onSlideStart(Direction pDirection, float pOffsetX, float pOffsetY)
+	public void onSlideStart(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection)
 	{
 		mIsScrolling = true;
 		switch(pDirection)
@@ -317,12 +317,12 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 			case NONE: break;
 		}
 		
-		onSlide(pDirection, pOffsetX, pOffsetY);
+		onSlide(pSceneTouchEvent, pOffsetX, pOffsetY, pDirection);
 	}
 
 
 	@Override
-	public void onSlide(Direction pDirection, float pOffsetX, float pOffsetY)
+	public void onSlide(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection)
 	{
 		mScrollX = mScrollStartX + pOffsetX;
 		mScrollY = mScrollStartY + pOffsetY;
@@ -332,9 +332,9 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 
 
 	@Override
-	public void onSlideEnd(Direction pDirection, float pOffsetX, float pOffsetY)
+	public void onSlideEnd(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection)
 	{
-		onSlide(pDirection, pOffsetX, pOffsetY);
+		onSlide(pSceneTouchEvent, pOffsetX, pOffsetY, pDirection);
 		
 		mIsScrolling = false;
 		
