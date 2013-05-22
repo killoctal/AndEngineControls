@@ -114,7 +114,15 @@ public class PointerDetector
 		// Catch the pointer ID
 		if (mPointerID == TouchEvent.INVALID_POINTER_ID)
 		{
-			mPointerID = pSceneTouchEvent.getPointerID();
+			// If item concerned, catch the ID and continue
+			if (tmpInside)
+			{
+				mPointerID = pSceneTouchEvent.getPointerID();
+			}
+			else // If item not concerned just don't handle the event
+			{
+				return false;
+			}
 		}
 		
 		// If the pointer is the right one and not an other

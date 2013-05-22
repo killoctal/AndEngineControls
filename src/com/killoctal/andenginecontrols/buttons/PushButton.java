@@ -30,7 +30,7 @@ public class PushButton extends Rectangle
 	
 	public PushButton(float pX, float pY, float pWidth, float pHeight, VertexBufferObjectManager pVertexBufferObjectManager)
 	{
-		this(pX, pY, pWidth, pHeight, pVertexBufferObjectManager, new PointerDetector());
+		this(pX, pY, pWidth, pHeight, pVertexBufferObjectManager, null);
 	}
 	
 	
@@ -62,7 +62,7 @@ public class PushButton extends Rectangle
 	
 	public void setClickDetector(PointerDetector pDetector)
 	{
-		mDetector = pDetector;
+		mDetector = (pDetector != null) ? pDetector : new PointerDetector(this);
 		mDetector.mTouchArea = this;
 	}
 	
@@ -86,8 +86,9 @@ public class PushButton extends Rectangle
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
 		return mDetector.handleTouchEvent(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-		
 	}
+	
+	
 	
 	@Override
 	public boolean contains(float pX, float pY)
