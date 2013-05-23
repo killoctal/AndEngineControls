@@ -291,7 +291,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		}
 		
 		// Event to the slider
-		tmpHandled |= mSlideDetector.handleTouchEvent(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+		tmpHandled |= mSlideDetector.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 		
 		return tmpHandled;
 	}

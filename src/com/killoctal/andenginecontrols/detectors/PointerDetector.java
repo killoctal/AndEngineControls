@@ -1,15 +1,19 @@
 package com.killoctal.andenginecontrols.detectors;
 
+
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.util.Constants;
 
 /**
  * @brief A pointer detector class for fix ACTION_UP and ACTION_MOVE problems
  * 
- * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true) 
+ * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true)
+ * @warning If you use the touchAreaBindingOnActionMove the effects could be unexpected !
  */
-public class PointerDetector
+public class PointerDetector implements ITouchArea
 {
+	private static float[] POS = new float[2];
 	
 	public static interface IClickListener {
 		/// Executed when pressed and released inside
@@ -108,7 +112,7 @@ public class PointerDetector
 	 * 
 	 * The onTouchArea of the object must execute this method
 	 */
-	public boolean handleTouchEvent(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
+	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
 		boolean tmpInside = mTouchArea == null || mTouchArea.contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
 		
@@ -119,19 +123,21 @@ public class PointerDetector
 			if (mPointerID == TouchEvent.INVALID_POINTER_ID)
 			{
 				// If item concerned, catch the ID and continue
-				if (tmpInside && (mAcceptsIncomingEvent || pSceneTouchEvent.isActionDown()))
+				if (tmpInside && (pSceneTouchEvent.isActionDown() || mAcceptsIncomingEvent))
 				{
 					mPointerID = pSceneTouchEvent.getPointerID();
-				}
-				else // If item not concerned just don't handle the event
-				{
-					return false;
 				}
 			}
 			
 			// If the pointer is the right one and not an other
 			if (mPointerID == pSceneTouchEvent.getPointerID())
 			{
+				if (mTouchArea != null)
+				{
+					// Transmit the event to the toucharea (probably useless but might be usefull)
+					mTouchArea.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+				}
+				
 				if (pSceneTouchEvent.isActionDown())
 				{
 					// Useless check but for the principe
@@ -139,7 +145,7 @@ public class PointerDetector
 					{
 						mPressTime = System.currentTimeMillis();
 						setPressed(true);
-	
+						
 						// Pointer press position
 						mPressX = pTouchAreaLocalX;
 						mPressY = pTouchAreaLocalY;
@@ -152,14 +158,13 @@ public class PointerDetector
 				{
 					// Execute the listner
 					executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
-	
 					if (tmpInside)
 					{
 						// If pressed => click
 						if (mIsPressed)
 						{
 							setPressed(false);
-	
+							
 							// Execute the listner
 							executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, System.currentTimeMillis() - mPressTime);
 						}
@@ -285,7 +290,47 @@ public class PointerDetector
 		return mPressY;
 	}
 	
-	
+
+	@Override
+	public boolean contains(float pX, float pY)
+	{
+		// Really important for abuse the AndEngine primitive touch system (sorry Nicolas :p)
+		return true;
+	}
+
+
+
+	@Override
+	public float[] convertSceneToLocalCoordinates(float pX, float pY)
+	{
+		if (mTouchArea != null)
+		{
+			return mTouchArea.convertSceneToLocalCoordinates(pX, pY);
+		}
+		
+		POS[Constants.VERTEX_INDEX_X] = pX;
+		POS[Constants.VERTEX_INDEX_Y] = pY;
+		
+		return POS;
+	}
+
+
+
+	@Override
+	public float[] convertLocalToSceneCoordinates(float pX, float pY)
+	{
+		if (mTouchArea != null)
+		{
+			return mTouchArea.convertLocalToSceneCoordinates(pX, pY);
+		}
+		
+		POS[Constants.VERTEX_INDEX_X] = pX;
+		POS[Constants.VERTEX_INDEX_Y] = pY;
+		
+		return POS;
+	}
+
+
 	
 	
 	protected void executeOnClickListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, long pPressDuration)
@@ -328,7 +373,8 @@ public class PointerDetector
 		if (mMoveListener != null)
 			mMoveListener.onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pIsPressed);
 	}
-
+	
+	
 	
 
 }

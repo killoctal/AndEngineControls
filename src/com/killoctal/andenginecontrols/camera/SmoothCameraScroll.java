@@ -38,7 +38,6 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 		
 		// Creates the pinch detector
 		mScrollDetector = new ScrollDetector() {
-			
 			/**
 			 * @brief Prevents camera shaking on scroll start
 			 */

@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 import org.andengine.entity.IEntity;
 import org.andengine.entity.primitive.Rectangle;
-import org.andengine.input.touch.TouchEvent;
+import org.andengine.entity.scene.Scene;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import com.killoctal.andenginecontrols.detectors.PointerDetector;
 import com.killoctal.andenginecontrols.detectors.PointerDetector.IClickListener;
@@ -18,31 +18,43 @@ import com.killoctal.andenginecontrols.detectors.PointerDetector.IMoveListener;
  * The events are based on listeners. The button itself is a listener so you don't have to manually add listeners.
  * You can add listeners for extend the button possibilities.
  * 
- * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true) 
+ * @warning You MUST NOT register this touchArea to the scene because this is the internal detector
+ *          that will be registered instead ! This structuration was made because the AndEngine
+ *          touch management doesn't work properly with the enter/leave events so I coded a workaround.
+ * 
+ * @note You can overload "onAreaTouched" method if you want but the goal of using
+ *       AndEngineControls is to do not have to use it anymore... but you still can.
  */
 public class PushButton extends Rectangle
 {
 	private PointerDetector mDetector;
 	private HashSet<PushButton> mChildrenToReEnable;
 	
-	public PushButton(VertexBufferObjectManager pVertexBufferObjectManager)
-	{
-		this(0, 0, 0, 0, pVertexBufferObjectManager);
-	}
 	
 	
-	public PushButton(float pX, float pY, float pWidth, float pHeight, VertexBufferObjectManager pVertexBufferObjectManager)
-	{
-		this(pX, pY, pWidth, pHeight, pVertexBufferObjectManager, null);
-	}
-	
-	
-	public PushButton(float pX, float pY, float pWidth, float pHeight, VertexBufferObjectManager pVertexBufferObjectManager, PointerDetector pPointerDetector)
+	/**
+	 * @brief Constructor
+	 * 
+	 * @param pScene
+	 * @param pX
+	 * @param pY
+	 * @param pWidth
+	 * @param pHeight
+	 * @param pVertexBufferObjectManager
+	 * @param pPointerDetector
+	 * 
+	 * @warning The button is automatically registered (in facts it is the detector instead the button itself)
+	 */
+	public PushButton(Scene pScene, float pX, float pY, float pWidth, float pHeight,
+			VertexBufferObjectManager pVertexBufferObjectManager, PointerDetector pPointerDetector)
 	{
 		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
 		// Creates the default detector
 		setClickDetector(pPointerDetector);
+		
+		// Automatic register (important to register the detector instead the button itself)
+		pScene.registerTouchArea(mDetector);
 		
 		// Auto add listeners
 		if (this instanceof PointerDetector.IClickListener)
@@ -54,6 +66,24 @@ public class PushButton extends Rectangle
 		{
 			mDetector.mMoveListener = (IMoveListener) this;
 		}
+	}
+	
+	
+	/**
+	 * @overload
+	 */
+	public PushButton(Scene pScene, VertexBufferObjectManager pVertexBufferObjectManager)
+	{
+		this(pScene, 0, 0, 0, 0, pVertexBufferObjectManager);
+	}
+	
+	/**
+	 * @overload
+	 */
+	public PushButton(Scene pScene, float pX, float pY, float pWidth, float pHeight,
+			VertexBufferObjectManager pVertexBufferObjectManager)
+	{
+		this(pScene, pX, pY, pWidth, pHeight, pVertexBufferObjectManager, null);
 	}
 	
 	
@@ -148,17 +178,6 @@ public class PushButton extends Rectangle
 				tmpBtn.setEnabled(false);
 			}
 		}
-	}
-	
-	
-	
-	/**
-	 * @note Don't override this method, it is best to override the virtual methods onClick, onMove, etc
-	 */
-	@Override
-	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
-	{
-		return mDetector.handleTouchEvent(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 	}
 	
 	
