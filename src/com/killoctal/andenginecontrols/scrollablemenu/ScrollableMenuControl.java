@@ -2,9 +2,11 @@ package com.killoctal.andenginecontrols.scrollablemenu;
 
 import android.util.SparseArray;
 import java.util.ArrayList;
-import org.andengine.entity.primitive.Rectangle;
+import org.andengine.entity.scene.Scene;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import com.killoctal.andenginecontrols.buttons.PushButton;
+import com.killoctal.andenginecontrols.detectors.PointerDetector;
 import com.killoctal.andenginecontrols.detectors.SlideDetector;
 import com.killoctal.andenginecontrols.detectors.SlideDetector.Direction;
 
@@ -16,7 +18,7 @@ import com.killoctal.andenginecontrols.detectors.SlideDetector.Direction;
  * @warning If buttons must have special touch events, create them before the menu
  *          control, or use a custom registerTouchArea for this control.
  */
-public class ScrollableMenuControl extends Rectangle implements SlideDetector.ISlideDetectorListener
+public class ScrollableMenuControl extends PushButton implements SlideDetector.ISlideDetectorListener
 {
 	//private ScrollableMenuItem mRemovingItem;
 	
@@ -29,7 +31,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	public float mDefaultColumnWidth, mDefaultRowHeight;
 	
 	/// The scroll detector (for set minimal scroll distance)
-	final private SlideDetector mSlideDetector;
+	private SlideDetector mSlideDetector;
 	
 	
 	private final SparseArray<Float> mRowsHeights, mColsWidths;
@@ -52,11 +54,11 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	 * @param pVertexBufferObjectManager
 	 * @param pScene
 	 */
-	public ScrollableMenuControl(float pX, float pY, float pWidth, float pHeight,
+	public ScrollableMenuControl(Scene pScene, float pX, float pY, float pWidth, float pHeight,
 			float pDefaultColumnWidth, float pDefaultRowHeight,
 			VertexBufferObjectManager pVertexBufferObjectManager)
 	{
-		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
+		super(pScene, pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
 		mItems = new ArrayList<ScrollableMenuItem>();
 		
@@ -69,9 +71,6 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		mColsPos = new SparseArray<Float>();
 		mRowsPos = new SparseArray<Float>();
 		
-		mSlideDetector = new SlideDetector(10, this);
-		mSlideDetector.mSlideListener = this;
-		
 		mMaxScrollX = mMaxScrollY = 0;
 		
 		mScrollStartX = mScrollStartY = 0;
@@ -80,12 +79,48 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	}
 	
 	
+	@Override
+	protected PointerDetector instanciateDetector()
+	{
+		mSlideDetector = new SlideDetector(10, this) {
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
+			{
+				boolean tmpHandled = false;
+				tmpHandled |= super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+				
+				for(ScrollableMenuItem iItem : mItems)
+				{
+					// Prevents of the click when scrolling
+					if (isScrolling())
+					{
+						if (iItem.getDetector().isPressed())
+						{
+							iItem.getDetector().setPressed(false);
+						}
+					}
+					
+					float[] tmpNewLocalCoords = iItem.convertSceneToLocalCoordinates(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
+					tmpHandled |= iItem.getDetector().onAreaTouched(pSceneTouchEvent, tmpNewLocalCoords[0], tmpNewLocalCoords[1]);
+				}
+				
+				
+				return tmpHandled;
+			}
+		};
+		
+		mSlideDetector.mSlideListener = this;
+		
+		return mSlideDetector;
+	}
+	
+	
 	final public boolean isScrolling()
 	{
 		return mIsScrolling;
 	}
 	
-	final public SlideDetector getDetector()
+	final public SlideDetector getSlideDetector()
 	{
 		return mSlideDetector;
 	}
@@ -211,8 +246,8 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 			mRowsHeights.put(pItem.mRow, pItem.getHeight());
 		}
 		
-
 		mItems.add(pItem);
+		
 		attachChild(pItem);
 		
 		updateMenu();
@@ -272,29 +307,6 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	
 	
 	
-	@Override
-	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
-	{
-		boolean tmpHandled = false;
-		for(ScrollableMenuItem iItem : mItems)
-		{
-			if (isScrolling())
-			{
-				if (iItem.getDetector().isPressed())
-				{
-					iItem.getDetector().setPressed(false);
-				}
-			}
-			
-			float[] tmpNewLocalCoords = iItem.convertSceneToLocalCoordinates(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-			tmpHandled |= iItem.onAreaTouched(pSceneTouchEvent, tmpNewLocalCoords[0], tmpNewLocalCoords[1]);
-		}
-		
-		// Event to the slider
-		tmpHandled |= mSlideDetector.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-		
-		return tmpHandled;
-	}
 	
 	
 	
@@ -349,6 +361,5 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	}
 
 
-	
 }
 

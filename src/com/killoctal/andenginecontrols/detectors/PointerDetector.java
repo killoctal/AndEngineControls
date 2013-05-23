@@ -26,6 +26,8 @@ public class PointerDetector implements ITouchArea
 		void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside);
 	}
 	
+	public static interface ILongClick {
+	}
 	
 	public static interface IMoveListener {
 		/// Executed when pointer is moving
@@ -49,9 +51,9 @@ public class PointerDetector implements ITouchArea
 	
 	private boolean mIsEnabled;
 	
-	public boolean mAcceptsIncomingEvent = true;
+	public boolean mAcceptsIncomingEvent = false;
+	public boolean mClickOnIncomingEvent = true;
 	public boolean mIsModal = true;
-	// now default is false due to concern item distinction update
 	public boolean mIsModalTotal = false;
 	
 	private boolean mIsModalThisTime;
@@ -119,6 +121,8 @@ public class PointerDetector implements ITouchArea
 		// Only do this if enabled
 		if (mIsEnabled)
 		{
+			int tmpActionEvent = pSceneTouchEvent.getAction();
+			
 			// Catch the pointer ID
 			if (mPointerID == TouchEvent.INVALID_POINTER_ID)
 			{
@@ -138,42 +142,7 @@ public class PointerDetector implements ITouchArea
 					mTouchArea.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 				}
 				
-				if (pSceneTouchEvent.isActionDown())
-				{
-					// Useless check but for the principe
-					if (tmpInside)
-					{
-						mPressTime = System.currentTimeMillis();
-						setPressed(true);
-						
-						// Pointer press position
-						mPressX = pTouchAreaLocalX;
-						mPressY = pTouchAreaLocalY;
-	
-						// Execute the listner
-						executeOnPressListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-					}
-				}
-				else if (pSceneTouchEvent.isActionUp())
-				{
-					// Execute the listner
-					executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
-					if (tmpInside)
-					{
-						// If pressed => click
-						if (mIsPressed)
-						{
-							setPressed(false);
-							
-							// Execute the listner
-							executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, System.currentTimeMillis() - mPressTime);
-						}
-					}
-					
-					// Free the catched pointer
-					freePointer();
-				}
-				else if (pSceneTouchEvent.isActionMove())
+				if (tmpActionEvent == TouchEvent.ACTION_MOVE)
 				{
 					if (tmpInside)
 					{
@@ -183,6 +152,12 @@ public class PointerDetector implements ITouchArea
 	
 							// Execute the listners
 							executeOnEnterListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, mIsPressed);
+							
+							// Simulates the down action if accepts incomingEvent and a click preparation is wanted
+							if (mAcceptsIncomingEvent && mClickOnIncomingEvent)
+							{
+								tmpActionEvent = TouchEvent.ACTION_DOWN;
+							}
 						}
 					}
 					else
@@ -207,6 +182,43 @@ public class PointerDetector implements ITouchArea
 	
 					// Execute the listner
 					executeOnMoveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
+				}
+				
+				if (tmpActionEvent == TouchEvent.ACTION_DOWN)
+				{
+					// Useless check but for the principe
+					if (tmpInside)
+					{
+						mPressTime = System.currentTimeMillis();
+						setPressed(true);
+						
+						// Pointer press position
+						mPressX = pTouchAreaLocalX;
+						mPressY = pTouchAreaLocalY;
+	
+						// Execute the listner
+						executeOnPressListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+				}
+				
+				if (tmpActionEvent == TouchEvent.ACTION_UP)
+				{
+					// Execute the listner
+					executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
+					if (tmpInside)
+					{
+						// If pressed => click
+						if (mIsPressed)
+						{
+							setPressed(false);
+							
+							// Execute the listner
+							executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, System.currentTimeMillis() - mPressTime);
+						}
+					}
+					
+					// Free the catched pointer
+					freePointer();
 				}
 			}
 		}

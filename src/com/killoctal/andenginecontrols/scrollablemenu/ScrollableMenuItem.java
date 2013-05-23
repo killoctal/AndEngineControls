@@ -13,6 +13,9 @@ public abstract class ScrollableMenuItem extends PushButton
 	public ScrollableMenuItem(Scene pScene, VertexBufferObjectManager pVertexBufferObjectManager)
 	{
 		super(pScene, pVertexBufferObjectManager);
+		
+		// The touch system is delegated to the scroll list controller
+		pScene.unregisterTouchArea( getDetector() );
 	}
 }
 

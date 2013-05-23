@@ -26,10 +26,10 @@ public class ScrollDetector extends PointerDetector
 	
 	public static float DEFAULT_MIN_DISTANCE = 10;
 	
-	private boolean mIsScrolling;
-	private boolean mNoClick;
+	public boolean mNoClickWhenScrolling = true;
+	public float mMinimumDistance = DEFAULT_MIN_DISTANCE;
 	
-	protected float mMinimumDistance;
+	private boolean mIsScrolling;
 	private boolean mCanScroll;
 	protected float mCurrentX, mCurrentY;
 	
@@ -57,7 +57,6 @@ public class ScrollDetector extends PointerDetector
 		mPressX = 0;
 		mPressY = 0;
 		mCanScroll = false;
-		mNoClick = true;
 	}
 	
 	
@@ -65,13 +64,6 @@ public class ScrollDetector extends PointerDetector
 	public boolean isScrolling()
 	{
 		return mIsScrolling;
-	}
-	
-	
-	
-	public void setNoClickWhenScrolling(boolean pNoClick)
-	{
-		mNoClick = pNoClick;
 	}
 	
 	
@@ -139,7 +131,7 @@ public class ScrollDetector extends PointerDetector
 		if (mIsScrolling)
 		{
 			mIsScrolling = false;
-			if (mNoClick)
+			if (mNoClickWhenScrolling)
 			{
 				setPressed(false);
 			}

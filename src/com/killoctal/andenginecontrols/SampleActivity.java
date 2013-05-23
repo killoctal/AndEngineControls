@@ -55,7 +55,7 @@ public class SampleActivity extends SimpleBaseGameActivity {
 		
 		mScene.setBackground(new Background(0.09804f, 0.6274f, 0.8784f));
 		
-		ScrollableMenuControl tmpMenu = new ScrollableMenuControl(0,0,100,500, 100, 50, getVertexBufferObjectManager());
+		ScrollableMenuControl tmpMenu = new ScrollableMenuControl(mScene, 0,0,100,500, 100, 50, getVertexBufferObjectManager());
 		mScene.attachChild(tmpMenu);
 		
 		tmpMenu.setColor(1, 0, 0);

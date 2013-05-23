@@ -29,7 +29,7 @@ public class PushButton extends Rectangle
 {
 	private PointerDetector mDetector;
 	private HashSet<PushButton> mChildrenToReEnable;
-	
+	final public Scene mScene;
 	
 	
 	/**
@@ -50,18 +50,19 @@ public class PushButton extends Rectangle
 	{
 		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
-		// Creates the default detector
-		setClickDetector(pPointerDetector);
+		mScene = pScene;
+		
+		mDetector = instanciateDetector();
+		mDetector.mTouchArea = this;
 		
 		// Automatic register (important to register the detector instead the button itself)
-		pScene.registerTouchArea(mDetector);
+		mScene.registerTouchArea(mDetector);
 		
 		// Auto add listeners
 		if (this instanceof PointerDetector.IClickListener)
 		{
 			mDetector.mClickListener = (IClickListener) this;
 		}
-		
 		if (this instanceof PointerDetector.IMoveListener)
 		{
 			mDetector.mMoveListener = (IMoveListener) this;
@@ -87,25 +88,14 @@ public class PushButton extends Rectangle
 	}
 	
 	
+	/* virtuel */ protected PointerDetector instanciateDetector()
+	{
+		return new PointerDetector(this);
+	}
 	
 	final public PointerDetector getDetector()
 	{
 		return mDetector;
-	}
-	
-	
-	
-	public void setClickDetector(PointerDetector pDetector)
-	{
-		if (pDetector != null)
-		{
-			mDetector = pDetector;
-		}
-		else
-		{
-			mDetector = new PointerDetector(this);
-		}
-		mDetector.mTouchArea = this;
 	}
 	
 	
@@ -116,7 +106,7 @@ public class PushButton extends Rectangle
 	 */
 	public void setEnabled(boolean pEnabled)
 	{
-		mDetector.setEnabled(pEnabled);
+		getDetector().setEnabled(pEnabled);
 		
 		if (mChildren != null)
 		{
@@ -144,7 +134,7 @@ public class PushButton extends Rectangle
 	
 	final public boolean isEnabled()
 	{
-		return mDetector.isEnabled();
+		return getDetector().isEnabled();
 	}
 	
 	
