@@ -12,6 +12,9 @@ public abstract class ScrollableMenuItem extends PushButton
 	public ScrollableMenuItem(VertexBufferObjectManager pVertexBufferObjectManager)
 	{
 		super(pVertexBufferObjectManager);
+		
+		// Non sense to have incoming events
+		getDetector().mAcceptsIncomingEvent = false;
 	}
 }
 

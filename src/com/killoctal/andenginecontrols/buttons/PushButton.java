@@ -1,6 +1,9 @@
 package com.killoctal.andenginecontrols.buttons;
 
 
+import java.util.HashSet;
+
+import org.andengine.entity.IEntity;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
@@ -20,7 +23,7 @@ import com.killoctal.andenginecontrols.detectors.PointerDetector.IMoveListener;
 public class PushButton extends Rectangle
 {
 	private PointerDetector mDetector;
-	
+	private HashSet<PushButton> mChildrenToReEnable;
 	
 	public PushButton(VertexBufferObjectManager pVertexBufferObjectManager)
 	{
@@ -60,22 +63,92 @@ public class PushButton extends Rectangle
 		return mDetector;
 	}
 	
+	
+	
 	public void setClickDetector(PointerDetector pDetector)
 	{
-		mDetector = (pDetector != null) ? pDetector : new PointerDetector(this);
+		if (pDetector != null)
+		{
+			mDetector = pDetector;
+		}
+		else
+		{
+			mDetector = new PointerDetector(this);
+		}
 		mDetector.mTouchArea = this;
 	}
 	
+	
+	
+	/**
+	 * @brief Enables or disable this control (and manage the sub elements too)
+	 * @param pEnabled
+	 */
 	public void setEnabled(boolean pEnabled)
 	{
 		mDetector.setEnabled(pEnabled);
+		
+		if (mChildren != null)
+		{
+			if (! pEnabled)
+			{
+				for(IEntity iEntity : mChildren)
+				{
+					t(iEntity);
+				}
+			}
+			else
+			{
+				if (mChildrenToReEnable != null)
+				{
+					for(PushButton iBtn : mChildrenToReEnable)
+					{
+						iBtn.setEnabled(true);
+					}
+					mChildrenToReEnable.clear();
+				}
+			}
+		}
 	}
 	
-	public boolean isEnabled()
+	
+	final public boolean isEnabled()
 	{
 		return mDetector.isEnabled();
 	}
 	
+	
+	/**
+	 * @brief Automatically disables the children if this button is disabled
+	 */
+	@Override
+	public void attachChild(IEntity pEntity) throws IllegalStateException
+	{
+		super.attachChild(pEntity);
+		
+		if (! isEnabled())
+		{
+			t(pEntity);
+		}
+	}
+	
+	
+	private void t(IEntity pEntity)
+	{
+		if (pEntity instanceof PushButton)
+		{
+			PushButton tmpBtn = (PushButton) pEntity;
+			if (tmpBtn.isEnabled())
+			{
+				if (mChildrenToReEnable == null)
+				{
+					mChildrenToReEnable = new HashSet<PushButton>();
+				}
+				mChildrenToReEnable.add(tmpBtn);
+				tmpBtn.setEnabled(false);
+			}
+		}
+	}
 	
 	
 	

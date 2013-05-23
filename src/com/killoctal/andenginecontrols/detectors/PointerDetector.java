@@ -45,9 +45,12 @@ public class PointerDetector
 	
 	private boolean mIsEnabled;
 	
-	private boolean mIsModal;
+	public boolean mAcceptsIncomingEvent = true;
+	public boolean mIsModal = true;
+	// now default is false due to concern item distinction update
+	public boolean mIsModalTotal = false;
+	
 	private boolean mIsModalThisTime;
-	private boolean mIsModalTotal;
 	
 	private long mPressTime;
 	protected float mPressX, mPressY;
@@ -86,8 +89,6 @@ public class PointerDetector
 		
 		mIsPressed = false;
 		mIsPointerInside = false;
-		
-		setModal(true);
 	}
 	
 	
@@ -111,96 +112,99 @@ public class PointerDetector
 	{
 		boolean tmpInside = mTouchArea == null || mTouchArea.contains(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
 		
-		// Catch the pointer ID
-		if (mPointerID == TouchEvent.INVALID_POINTER_ID)
+		// Only do this if enabled
+		if (mIsEnabled)
 		{
-			// If item concerned, catch the ID and continue
-			if (tmpInside)
+			// Catch the pointer ID
+			if (mPointerID == TouchEvent.INVALID_POINTER_ID)
 			{
-				mPointerID = pSceneTouchEvent.getPointerID();
-			}
-			else // If item not concerned just don't handle the event
-			{
-				return false;
-			}
-		}
-		
-		// If the pointer is the right one and not an other
-		if (mPointerID == pSceneTouchEvent.getPointerID())
-		{
-			if (pSceneTouchEvent.isActionDown())
-			{
-				// Useless check but for the principe
-				if (tmpInside)
+				// If item concerned, catch the ID and continue
+				if (tmpInside && (mAcceptsIncomingEvent || pSceneTouchEvent.isActionDown()))
 				{
-					mPressTime = System.currentTimeMillis();
-					setPressed(true);
-
-					// Pointer press position
-					mPressX = pTouchAreaLocalX;
-					mPressY = pTouchAreaLocalY;
-
+					mPointerID = pSceneTouchEvent.getPointerID();
+				}
+				else // If item not concerned just don't handle the event
+				{
+					return false;
+				}
+			}
+			
+			// If the pointer is the right one and not an other
+			if (mPointerID == pSceneTouchEvent.getPointerID())
+			{
+				if (pSceneTouchEvent.isActionDown())
+				{
+					// Useless check but for the principe
+					if (tmpInside)
+					{
+						mPressTime = System.currentTimeMillis();
+						setPressed(true);
+	
+						// Pointer press position
+						mPressX = pTouchAreaLocalX;
+						mPressY = pTouchAreaLocalY;
+	
+						// Execute the listner
+						executeOnPressListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+				}
+				else if (pSceneTouchEvent.isActionUp())
+				{
 					// Execute the listner
-					executeOnPressListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-				}
-			}
-			else if (pSceneTouchEvent.isActionUp())
-			{
-				// Execute the listner
-				executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
-
-				if (tmpInside)
-				{
-					// If pressed => click
-					if (mIsPressed)
+					executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
+	
+					if (tmpInside)
 					{
-						setPressed(false);
-
-						// Execute the listner
-						executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, System.currentTimeMillis() - mPressTime);
-					}
-				}
-
-				// Free the catched pointer
-				freePointer();
-			}
-			else if (pSceneTouchEvent.isActionMove())
-			{
-				if (tmpInside)
-				{
-					if (! mIsPointerInside)
-					{
-						mIsPointerInside = true;
-
-						// Execute the listners
-						executeOnEnterListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, mIsPressed);
-					}
-				}
-				else
-				{
-					if (mIsPointerInside)
-					{
-						mIsPointerInside = false;
-
-						// Execute the listner
-						executeOnLeaveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, mIsPressed);
-
-						// If pressed, release the button
+						// If pressed => click
 						if (mIsPressed)
 						{
 							setPressed(false);
-
+	
 							// Execute the listner
-							executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, false);
+							executeOnClickListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, System.currentTimeMillis() - mPressTime);
 						}
 					}
+					
+					// Free the catched pointer
+					freePointer();
 				}
-
-				// Execute the listner
-				executeOnMoveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
+				else if (pSceneTouchEvent.isActionMove())
+				{
+					if (tmpInside)
+					{
+						if (! mIsPointerInside)
+						{
+							mIsPointerInside = true;
+	
+							// Execute the listners
+							executeOnEnterListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, mIsPressed);
+						}
+					}
+					else
+					{
+						if (mIsPointerInside)
+						{
+							mIsPointerInside = false;
+							
+							// Execute the listner
+							executeOnLeaveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, mIsPressed);
+							
+							// If pressed, release the button
+							if (mIsPressed)
+							{
+								setPressed(false);
+								
+								// Execute the listner
+								executeOnReleaseListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, false);
+							}
+						}
+					}
+	
+					// Execute the listner
+					executeOnMoveListeners(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, tmpInside);
+				}
 			}
 		}
-		
 		
 		// If modal once
 		if (mIsModalThisTime)
@@ -253,24 +257,6 @@ public class PointerDetector
 		mPointerID = TouchEvent.INVALID_POINTER_ID;
 	}
 	
-	
-	final public void setModal(boolean pModal, boolean pTotal)
-	{
-		mIsModal = pModal;
-		mIsModalTotal = pTotal;
-	}
-
-	final public void setModal(boolean pModal)
-	{
-		setModal(pModal, true);
-	}
-	
-	
-	
-	final public boolean isModal()
-	{
-		return mIsModal;
-	}
 	
 	final public void setModalThisTime()
 	{

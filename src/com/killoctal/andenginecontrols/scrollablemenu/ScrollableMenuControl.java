@@ -37,8 +37,8 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	
 	private boolean mIsScrolling;
 	
-	float tmpMaxScrollX;
-	float tmpMaxScrollY;
+	float mMaxScrollX;
+	float mMaxScrollY;
 	
 	/**
 	 * @brief Constructor
@@ -72,7 +72,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		mSlideDetector = new SlideDetector(10, this);
 		mSlideDetector.mSlideListener = this;
 		
-		tmpMaxScrollX = tmpMaxScrollY = 0;
+		mMaxScrollX = mMaxScrollY = 0;
 		
 		mScrollStartX = mScrollStartY = 0;
 		
@@ -135,7 +135,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	
 	
 	
-	public void clearItems()
+	public void clear()
 	{
 		for(ScrollableMenuItem iItem : mItems)
 		{
@@ -180,8 +180,9 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 
 		addItem(pItem);
 	}
-
-
+	
+	
+	
 	/**
 	 * @brief Add an item, using inside's specified position
 	 * @param pItem Item (with position specified inside)
@@ -225,8 +226,8 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	public void updateScroll()
 	{
 		// Checking the applyed scroll
-		tmpMaxScrollX = mWidth -  (mColsPos.get(mColsPos.size()-1, 0f) + mColsWidths.get(mColsWidths.size()-1, 0f));
-		tmpMaxScrollY = mHeight - (mRowsPos.get(mRowsPos.size()-1, 0f) + mRowsHeights.get(mRowsHeights.size()-1, 0f));
+		mMaxScrollX = mWidth -  (mColsPos.get(mColsPos.size()-1, 0f) + mColsWidths.get(mColsWidths.size()-1, 0f));
+		mMaxScrollY = mHeight - (mRowsPos.get(mRowsPos.size()-1, 0f) + mRowsHeights.get(mRowsHeights.size()-1, 0f));
 		
 		if (mScrollX > 0f)
 		{
@@ -236,13 +237,13 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		{
 			mScrollY = 0;
 		}
-		if (mScrollX < tmpMaxScrollX)
+		if (mScrollX < mMaxScrollX)
 		{
-			mScrollX = tmpMaxScrollX;
+			mScrollX = mMaxScrollX;
 		}
-		if (mScrollY < tmpMaxScrollY)
+		if (mScrollY < mMaxScrollY)
 		{
-			mScrollY = tmpMaxScrollY;
+			mScrollY = mMaxScrollY;
 		}
 		
 		// Apply
@@ -270,9 +271,11 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 	*/
 	
 	
+	
 	@Override
 	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
+		boolean tmpHandled = false;
 		for(ScrollableMenuItem iItem : mItems)
 		{
 			if (isScrolling())
@@ -284,14 +287,17 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 			}
 			
 			float[] tmpNewLocalCoords = iItem.convertSceneToLocalCoordinates(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-			iItem.onAreaTouched(pSceneTouchEvent, tmpNewLocalCoords[0], tmpNewLocalCoords[1]);
+			tmpHandled |= iItem.onAreaTouched(pSceneTouchEvent, tmpNewLocalCoords[0], tmpNewLocalCoords[1]);
 		}
 		
-		// Transmit the event
-		return mSlideDetector.handleTouchEvent(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+		// Event to the slider
+		tmpHandled |= mSlideDetector.handleTouchEvent(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+		
+		return tmpHandled;
 	}
-
-
+	
+	
+	
 	@Override
 	public void onSlideStart(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection)
 	{
@@ -300,7 +306,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		{
 			case TOP:
 			case BOTTOM:
-				if (tmpMaxScrollY == 0)
+				if (mMaxScrollY == 0)
 				{
 					mIsScrolling = false;
 				}
@@ -308,7 +314,7 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 				
 			case LEFT:
 			case RIGHT:
-				if (tmpMaxScrollX == 0)
+				if (mMaxScrollX == 0)
 				{
 					mIsScrolling = false;
 				}
@@ -317,10 +323,10 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 			case NONE: break;
 		}
 		
-		onSlide(pSceneTouchEvent, pOffsetX, pOffsetY, pDirection);
+		//onSlide(pSceneTouchEvent, pOffsetX, pOffsetY, pDirection);
 	}
-
-
+	
+	
 	@Override
 	public void onSlide(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection)
 	{
@@ -329,8 +335,8 @@ public class ScrollableMenuControl extends Rectangle implements SlideDetector.IS
 		
 		updateScroll();
 	}
-
-
+	
+	
 	@Override
 	public void onSlideEnd(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY, Direction pDirection)
 	{

@@ -24,6 +24,7 @@ public class SlideDetector extends ScrollDetector
 	
 	
 	private Direction mSlidingDirection;
+	private float mFixedPos;
 	
 	
 	/**
@@ -51,8 +52,8 @@ public class SlideDetector extends ScrollDetector
 		
 		mSlideListener = null;
 		
+		mFixedPos = 0;
 		mSlidingDirection = Direction.NONE;
-		
 	}
 	
 	
@@ -69,18 +70,22 @@ public class SlideDetector extends ScrollDetector
 		if (pOffsetX <= - mMinimumDistance)
 		{
 			mSlidingDirection = Direction.LEFT;
+			mFixedPos = pOffsetY;
 		}
 		else if (pOffsetX >= mMinimumDistance)
 		{
 			mSlidingDirection = Direction.RIGHT;
+			mFixedPos = pOffsetY;
 		}
 		else if (pOffsetY <= - mMinimumDistance)
 		{
 			mSlidingDirection = Direction.TOP;
+			mFixedPos = pOffsetX;
 		}
 		else if (pOffsetY >= mMinimumDistance)
 		{
 			mSlidingDirection = Direction.BOTTOM;
+			mFixedPos = pOffsetX;
 		}
 		
 		// If directiopn changed => slide start
@@ -92,13 +97,19 @@ public class SlideDetector extends ScrollDetector
 	}
 	
 	
+	
 	@Override
 	protected void executeOnScrollListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
 		super.executeOnScrollListeners(pSceneTouchEvent, pOffsetX, pOffsetY);
 		
 		if (mSlideListener != null)
-			mSlideListener.onSlide(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
+		{
+			mSlideListener.onSlide(pSceneTouchEvent,
+					(mSlidingDirection != Direction.TOP && mSlidingDirection != Direction.BOTTOM) ? pOffsetX : mFixedPos,
+					(mSlidingDirection != Direction.LEFT && mSlidingDirection != Direction.RIGHT) ? pOffsetY : mFixedPos,
+					mSlidingDirection);
+		}
 	}
 	
 	
