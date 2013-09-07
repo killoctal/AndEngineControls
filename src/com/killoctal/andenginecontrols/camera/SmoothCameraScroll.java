@@ -29,6 +29,13 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 	
 	protected float mOffsetX, mOffsetY;
 	
+	/// Camera borders
+	protected float
+		mMinX = Float.MIN_VALUE,
+		mMaxX = Float.MAX_VALUE,
+		mMinY = Float.MIN_VALUE,
+		mMaxY = Float.MAX_VALUE;
+	
 	/// The camera
 	final private ZoomCamera mCamera;
 	
@@ -62,6 +69,7 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 			{
 				if ((int)mOffsetX != 0 || (int)mOffsetY != 0)
 				{
+					if (checkBorders())
 					{
 					
 						mCamera.offsetCenter(mOffsetX, mOffsetY);
@@ -76,6 +84,52 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 		});
 	}
 	
+	
+	public void setBorders(float pMinX, float pMaxX, float pMinY, float pMaxY)
+	{
+		mMinX = pMinX;
+		mMaxX = pMaxX;
+		mMinY = pMinY;
+		mMaxY = pMaxY;
+	}
+	
+	protected boolean checkBorders()
+	{
+		float correctX = 0, correctY = 0;
+		
+		if (mCamera.getXMax() > mMaxX)
+		{
+			correctX = mMaxX - mCamera.getXMax();
+		}
+		else if (mCamera.getXMin() < mMinX)
+		{
+			correctX = mMinX - mCamera.getXMin();
+		}
+		
+		if (mCamera.getYMax() > mMaxY)
+		{
+			correctY = mMaxY - mCamera.getYMax();
+		}
+		else if (mCamera.getYMin() < mMinY)
+		{
+			correctY = mMinY - mCamera.getYMin();
+		}
+		
+		
+		if (correctX != 0)
+		{
+			mOffsetX = 0;
+			mCamera.offsetCenter(correctX, 0);
+		}
+		
+		if (correctY != 0)
+		{
+			mOffsetY = 0;
+			mCamera.offsetCenter(0, correctY);
+		}
+		
+		return true;
+	}
 	
 	final public ScrollDetector getDetector()
 	{
