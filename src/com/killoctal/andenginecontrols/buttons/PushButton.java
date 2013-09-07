@@ -12,7 +12,7 @@ import com.killoctal.andenginecontrols.detectors.PointerDetector.IClickListener;
 import com.killoctal.andenginecontrols.detectors.PointerDetector.IMoveListener;
 
 /**
- * @brief A simple push button
+ * @brief A simple touchable push button
  * @author Gabriel Schlozer
  * 
  * The events are based on listeners. The button itself is a listener so you don't have to manually add listeners.
@@ -46,7 +46,7 @@ public class PushButton extends Rectangle
 	 * @warning The button is automatically registered (in facts it is the detector instead the button itself)
 	 */
 	public PushButton(Scene pScene, float pX, float pY, float pWidth, float pHeight,
-			VertexBufferObjectManager pVertexBufferObjectManager, PointerDetector pPointerDetector)
+			VertexBufferObjectManager pVertexBufferObjectManager)
 	{
 		super(pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
@@ -76,15 +76,6 @@ public class PushButton extends Rectangle
 	public PushButton(Scene pScene, VertexBufferObjectManager pVertexBufferObjectManager)
 	{
 		this(pScene, 0, 0, 0, 0, pVertexBufferObjectManager);
-	}
-	
-	/**
-	 * @overload
-	 */
-	public PushButton(Scene pScene, float pX, float pY, float pWidth, float pHeight,
-			VertexBufferObjectManager pVertexBufferObjectManager)
-	{
-		this(pScene, pX, pY, pWidth, pHeight, pVertexBufferObjectManager, null);
 	}
 	
 	

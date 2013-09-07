@@ -31,7 +31,7 @@ public class ScrollableMenuControl extends PushButton implements SlideDetector.I
 	public float mDefaultColumnWidth, mDefaultRowHeight;
 	
 	/// The scroll detector (for set minimal scroll distance)
-	private SlideDetector mSlideDetector;
+	final private SlideDetector mSlideDetector;
 	
 	
 	private final SparseArray<Float> mRowsHeights, mColsWidths;
@@ -60,6 +60,9 @@ public class ScrollableMenuControl extends PushButton implements SlideDetector.I
 	{
 		super(pScene, pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
+		mSlideDetector = (SlideDetector) getDetector();
+		mSlideDetector.mSlideListener = this;
+		
 		mItems = new ArrayList<ScrollableMenuItem>();
 		
 		mDefaultColumnWidth = pDefaultColumnWidth;
@@ -82,7 +85,7 @@ public class ScrollableMenuControl extends PushButton implements SlideDetector.I
 	@Override
 	protected PointerDetector instanciateDetector()
 	{
-		mSlideDetector = new SlideDetector(10, this) {
+		return new SlideDetector(10, this) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 			{
@@ -108,10 +111,6 @@ public class ScrollableMenuControl extends PushButton implements SlideDetector.I
 				return tmpHandled;
 			}
 		};
-		
-		mSlideDetector.mSlideListener = this;
-		
-		return mSlideDetector;
 	}
 	
 	

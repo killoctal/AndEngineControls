@@ -62,10 +62,13 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 			{
 				if ((int)mOffsetX != 0 || (int)mOffsetY != 0)
 				{
-					mCamera.offsetCenter(mOffsetX, mOffsetY);
+					{
 					
-					mOffsetX = ACMaths.smoothValue(0, mOffsetX, SPEED, 8);
-					mOffsetY = ACMaths.smoothValue(0, mOffsetY, SPEED, 8);
+						mCamera.offsetCenter(mOffsetX, mOffsetY);
+						
+						mOffsetX = ACMaths.smoothValue(0, mOffsetX, SPEED, 8);
+						mOffsetY = ACMaths.smoothValue(0, mOffsetY, SPEED, 8);
+					}
 				}
 			}
 			@Override
