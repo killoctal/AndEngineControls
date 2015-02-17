@@ -26,8 +26,6 @@ public class PointerDetector implements ITouchArea
 		void onRelease(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside);
 	}
 	
-	public static interface ILongClick {
-	}
 	
 	public static interface IMoveListener {
 		/// Executed when pointer is moving
