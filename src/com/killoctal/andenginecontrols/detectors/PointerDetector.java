@@ -136,7 +136,7 @@ public class PointerDetector implements ITouchArea
 			// If the pointer is the right one and not an other
 			if (mPointerID == pSceneTouchEvent.getPointerID())
 			{
-				if (mTouchArea != null)
+				if (mTouchArea != null && tmpInside)
 				{
 					// Transmit the event to the toucharea (probably useless but might be usefull)
 					mTouchArea.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
