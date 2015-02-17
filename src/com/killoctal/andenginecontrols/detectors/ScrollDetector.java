@@ -60,6 +60,21 @@ public class ScrollDetector extends PointerDetector
 	}
 	
 	
+	@Override
+	public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
+	{
+		// Stop event propagation if it is scrolling
+		boolean wasScrolling = mIsScrolling;
+		if (super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY))
+		{
+			if (wasScrolling)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	
 	public boolean isScrolling()
 	{
