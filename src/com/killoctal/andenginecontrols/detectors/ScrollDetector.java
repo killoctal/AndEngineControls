@@ -7,7 +7,7 @@ import org.andengine.input.touch.TouchEvent;
 
 public class ScrollDetector extends PointerDetector
 {
-	public static interface IScrollDetectorListener
+	public static interface IScrollDetectorListener extends IPointerListener
 	{
 		public void onScrollStart(TouchEvent pSceneTouchEvent, float pScrollX, float pScrollY);
 		public void onScroll(TouchEvent pSceneTouchEvent, float pScrollX, float pScrollY);
