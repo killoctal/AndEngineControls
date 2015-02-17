@@ -95,6 +95,7 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 	
 	protected boolean checkBorders()
 	{
+		/* ## disabled because does not works properly ##
 		float correctX = 0, correctY = 0;
 		
 		if (mCamera.getXMax() > mMaxX)
@@ -127,7 +128,7 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 			mOffsetY = 0;
 			mCamera.offsetCenter(0, correctY);
 		}
-		
+		*/
 		return true;
 	}
 	
