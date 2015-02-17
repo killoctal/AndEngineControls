@@ -7,9 +7,9 @@ import org.andengine.entity.IEntity;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+
+import com.killoctal.andenginecontrols.detectors.ClickDetector;
 import com.killoctal.andenginecontrols.detectors.PointerDetector;
-import com.killoctal.andenginecontrols.detectors.PointerDetector.IClickListener;
-import com.killoctal.andenginecontrols.detectors.PointerDetector.IMoveListener;
 
 /**
  * @brief A simple touchable push button
@@ -59,13 +59,9 @@ public class PushButton extends Rectangle
 		mScene.registerTouchArea(mDetector);
 		
 		// Auto add listeners
-		if (this instanceof PointerDetector.IClickListener)
+		if ((Object)this instanceof ClickDetector.IClickListener)
 		{
-			mDetector.mClickListener = (IClickListener) this;
-		}
-		if (this instanceof PointerDetector.IMoveListener)
-		{
-			mDetector.mMoveListener = (IMoveListener) this;
+			mDetector.mPointer = (ClickDetector.IClickListener) (Object)this;
 		}
 	}
 	
@@ -81,7 +77,7 @@ public class PushButton extends Rectangle
 	
 	/* virtuel */ protected PointerDetector instanciateDetector()
 	{
-		return new PointerDetector(this);
+		return new ClickDetector(this);
 	}
 	
 	final public PointerDetector getDetector()
