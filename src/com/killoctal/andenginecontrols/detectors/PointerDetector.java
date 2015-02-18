@@ -11,7 +11,7 @@ import org.andengine.util.Constants;
  * @note The "leaving" event requires the scene has setTouchAreaBindingOnActionDownEnabled(true)
  * @warning If you use the touchAreaBindingOnActionMove the effects could be unexpected !
  */
-public abstract class PointerDetector implements ITouchArea
+public class PointerDetector implements ITouchArea
 {
 	private static float[] POS = new float[2];
 	
