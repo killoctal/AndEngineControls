@@ -34,23 +34,15 @@ public class ScrollDetector extends PointerDetector
 	protected float mCurrentX, mCurrentY;
 	
 	
-	public ScrollDetector()
+	public ScrollDetector(ITouchArea touchArea, IPointerListener pointer)
 	{
-		this(DEFAULT_MIN_DISTANCE);
+		this(touchArea, DEFAULT_MIN_DISTANCE, pointer);
 	}
 	
 	
-	
-	public ScrollDetector(float pMinimumDistance)
+	public ScrollDetector(ITouchArea pTouchArea, float pMinimumDistance, IPointerListener pointer)
 	{
-		this(pMinimumDistance, null);
-	}
-	
-	
-	
-	public ScrollDetector(float pMinimumDistance, ITouchArea pTouchArea)
-	{
-		super(pTouchArea);
+		super(pTouchArea, pointer);
 		mMinimumDistance = pMinimumDistance;
 		
 		mScrollListener = null;

@@ -36,19 +36,14 @@ public class SlideDetector extends ScrollDetector
 	 * @}
 	 */
 	
-	public SlideDetector()
+	public SlideDetector(ITouchArea touchArea, IPointerListener listener)
 	{
-		this(DEFAULT_MIN_DISTANCE);
+		this(touchArea, DEFAULT_MIN_DISTANCE, listener);
 	}
 	
-	public SlideDetector(float pMinimumDistance)
+	public SlideDetector(ITouchArea pTouchArea, float pMinimumDistance, IPointerListener listener)
 	{
-		this(pMinimumDistance, null);
-	}
-	
-	public SlideDetector(float pMinimumDistance, ITouchArea pTouchArea)
-	{
-		super(pMinimumDistance, pTouchArea);
+		super(pTouchArea, pMinimumDistance, listener);
 		
 		mSlideListener = null;
 		

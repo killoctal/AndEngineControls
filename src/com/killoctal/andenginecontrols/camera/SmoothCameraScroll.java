@@ -44,7 +44,7 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 		mCamera = pCam;
 		
 		// Creates the pinch detector
-		mScrollDetector = new ScrollDetector() {
+		mScrollDetector = new ScrollDetector(null, SmoothCameraScroll.this) {
 			/**
 			 * @brief Prevents camera shaking on scroll start
 			 */
@@ -56,8 +56,6 @@ public class SmoothCameraScroll implements ScrollDetector.IScrollDetectorListene
 				super.executeOnScrollStartListeners(pSceneTouchEvent, 0, 0);
 			}
 		};
-		
-		mScrollDetector.mScrollListener = this;
 		
 		// Init the target
 		mOffsetX = mOffsetY = 0;

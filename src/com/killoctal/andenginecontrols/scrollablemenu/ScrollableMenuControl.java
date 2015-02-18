@@ -8,6 +8,7 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import com.killoctal.andenginecontrols.buttons.PushButton;
 import com.killoctal.andenginecontrols.detectors.PointerDetector;
 import com.killoctal.andenginecontrols.detectors.SlideDetector;
+import com.killoctal.andenginecontrols.detectors.ClickDetector.IClickListener;
 import com.killoctal.andenginecontrols.detectors.SlideDetector.Direction;
 
 
@@ -83,9 +84,9 @@ public class ScrollableMenuControl extends PushButton implements SlideDetector.I
 	
 	
 	@Override
-	protected PointerDetector instanciateDetector()
+	protected PointerDetector instanciateDetector(IClickListener listener)
 	{
-		return new SlideDetector(10, this) {
+		return new SlideDetector(this, 10, listener) {
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 			{

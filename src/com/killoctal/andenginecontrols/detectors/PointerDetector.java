@@ -62,20 +62,19 @@ public abstract class PointerDetector implements ITouchArea
 	
 	public ITouchArea mTouchArea;
 	
-	public IPointerListener mPointer;
+	/// The pointer as a generic property
+	final IPointerListener mListener;
 	
 	
 	
 	/**
 	 * @brief Constructor
-	 * @param pTouchArea A touchArea to link with
+	 * @param touchArea A touchArea to link with
 	 */
-	public PointerDetector(ITouchArea pTouchArea)
+	public PointerDetector(ITouchArea touchArea, IPointerListener listener)
 	{
-		mTouchArea = pTouchArea;
-		
-		// Creates the listeners lists
-		mPointer = null;
+		mTouchArea = touchArea;
+		mListener = listener;
 		
 		mIsEnabled = true;
 		mPointerID = TouchEvent.INVALID_POINTER_ID;
@@ -85,17 +84,6 @@ public abstract class PointerDetector implements ITouchArea
 		mIsPressed = false;
 		mIsPointerInside = false;
 	}
-	
-	
-	
-	/**
-	 * @overload
-	 */
-	public PointerDetector()
-	{
-		this(null);
-	}
-	
 	
 	
 	/**
@@ -332,35 +320,35 @@ public abstract class PointerDetector implements ITouchArea
 
 	protected void executeOnPressListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY)
 	{
-		if (mPointer != null && mPointer instanceof ITouchListener)
-			((ITouchListener)mPointer).onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+		if (mListener instanceof ITouchListener)
+			((ITouchListener)mListener).onPress(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 	}
 	
 	
 	protected void executeOnReleaseListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside)
 	{
-		if (mPointer != null && mPointer instanceof ITouchListener)
-			((ITouchListener)mPointer).onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
+		if (mListener instanceof ITouchListener)
+			((ITouchListener)mListener).onRelease(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
 	}
 	
 	
 	protected void executeOnMoveListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pInside)
 	{
-		if (mPointer != null && mPointer instanceof IMoveListener)
-			((IMoveListener)mPointer).onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
+		if (mListener instanceof IMoveListener)
+			((IMoveListener)mListener).onMove(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pInside);
 	}
 	
 	
 	protected void executeOnEnterListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pIsPressed)
 	{
-		if (mPointer != null && mPointer instanceof IMoveListener)
-			((IMoveListener)mPointer).onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pIsPressed);
+		if (mListener instanceof IMoveListener)
+			((IMoveListener)mListener).onEnter(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pIsPressed);
 	}
 	
 	
 	protected void executeOnLeaveListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, boolean pIsPressed)
 	{
-		if (mPointer != null && mPointer instanceof IMoveListener)
-			((IMoveListener)mPointer).onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pIsPressed);
+		if (mListener instanceof IMoveListener)
+			((IMoveListener)mListener).onLeave(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pIsPressed);
 	}
 }

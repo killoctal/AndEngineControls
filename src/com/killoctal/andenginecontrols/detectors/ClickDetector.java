@@ -13,9 +13,9 @@ public class ClickDetector extends PointerDetector
 	}
 	
 	
-	public ClickDetector(ITouchArea pTouchArea)
+	public ClickDetector(ITouchArea touchArea, IPointerListener listener)
 	{
-		super(pTouchArea);
+		super(touchArea, listener);
 	}
 	
 	
@@ -44,7 +44,7 @@ public class ClickDetector extends PointerDetector
 	
 	protected void executeOnClickListeners(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY, long pPressDuration)
 	{
-		if (mPointer != null && mPointer instanceof IClickListener)
-			((IClickListener)mPointer).onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pPressDuration);
+		if (mListener instanceof IClickListener)
+			((IClickListener)mListener).onClick(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY, pPressDuration);
 	}
 }
