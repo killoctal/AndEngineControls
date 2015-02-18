@@ -62,7 +62,6 @@ public class ScrollableMenuControl extends PushButton implements SlideDetector.I
 		super(pScene, pX, pY, pWidth, pHeight, pVertexBufferObjectManager);
 		
 		mSlideDetector = (SlideDetector) getDetector();
-		mSlideDetector.mSlideListener = this;
 		
 		mItems = new ArrayList<ScrollableMenuItem>();
 		

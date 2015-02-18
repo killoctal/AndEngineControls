@@ -15,15 +15,6 @@ public class ScrollDetector extends PointerDetector
 	}
 	
 	
-	/**
-	 * @name Listeners
-	 * @{
-	 */
-	public IScrollDetectorListener mScrollListener;
-	/**
-	 * @}
-	 */
-	
 	public static float DEFAULT_MIN_DISTANCE = 10;
 	
 	public boolean mNoClickWhenScrolling = true;
@@ -44,8 +35,6 @@ public class ScrollDetector extends PointerDetector
 	{
 		super(pTouchArea, pointer);
 		mMinimumDistance = pMinimumDistance;
-		
-		mScrollListener = null;
 		mPressX = 0;
 		mPressY = 0;
 		mCanScroll = false;
@@ -151,20 +140,20 @@ public class ScrollDetector extends PointerDetector
 	
 	protected void executeOnScrollStartListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
-		if (mScrollListener != null)
-			mScrollListener.onScrollStart(pSceneTouchEvent, pOffsetX, pOffsetY);
+		if (mListener instanceof IScrollDetectorListener)
+			((IScrollDetectorListener)mListener).onScrollStart(pSceneTouchEvent, pOffsetX, pOffsetY);
 	}
 	
 	protected void executeOnScrollListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
-		if (mScrollListener != null)
-			mScrollListener.onScroll(pSceneTouchEvent, pOffsetX, pOffsetY);
+		if (mListener instanceof IScrollDetectorListener)
+			((IScrollDetectorListener)mListener).onScroll(pSceneTouchEvent, pOffsetX, pOffsetY);
 	}
 	
 	protected void executeOnScrollFinishListeners(TouchEvent pSceneTouchEvent, float pOffsetX, float pOffsetY)
 	{
-		if (mScrollListener != null)
-			mScrollListener.onScrollFinish(pSceneTouchEvent, pOffsetX, pOffsetY);
+		if (mListener instanceof IScrollDetectorListener)
+			((IScrollDetectorListener)mListener).onScrollFinish(pSceneTouchEvent, pOffsetX, pOffsetY);
 	}
 	
 	/*

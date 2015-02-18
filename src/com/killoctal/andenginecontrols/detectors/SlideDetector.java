@@ -27,15 +27,6 @@ public class SlideDetector extends ScrollDetector
 	private float mFixedPos;
 	
 	
-	/**
-	 * @name Listeners
-	 * @{
-	 */
-	public ISlideDetectorListener mSlideListener;
-	/**
-	 * @}
-	 */
-	
 	public SlideDetector(ITouchArea touchArea, IPointerListener listener)
 	{
 		this(touchArea, DEFAULT_MIN_DISTANCE, listener);
@@ -44,8 +35,6 @@ public class SlideDetector extends ScrollDetector
 	public SlideDetector(ITouchArea pTouchArea, float pMinimumDistance, IPointerListener listener)
 	{
 		super(pTouchArea, pMinimumDistance, listener);
-		
-		mSlideListener = null;
 		
 		mFixedPos = 0;
 		mSlidingDirection = Direction.NONE;
@@ -86,8 +75,10 @@ public class SlideDetector extends ScrollDetector
 		// If directiopn changed => slide start
 		if (mSlidingDirection != Direction.NONE)
 		{
-			if (mSlideListener != null)
-				mSlideListener.onSlideStart(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
+			if (mListener instanceof ISlideDetectorListener)
+			{
+				((ISlideDetectorListener)mListener).onSlideStart(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
+			}
 		}
 	}
 	
@@ -98,9 +89,9 @@ public class SlideDetector extends ScrollDetector
 	{
 		super.executeOnScrollListeners(pSceneTouchEvent, pOffsetX, pOffsetY);
 		
-		if (mSlideListener != null)
+		if (mListener instanceof ISlideDetectorListener)
 		{
-			mSlideListener.onSlide(pSceneTouchEvent,
+			((ISlideDetectorListener)mListener).onSlide(pSceneTouchEvent,
 					(mSlidingDirection != Direction.TOP && mSlidingDirection != Direction.BOTTOM) ? pOffsetX : mFixedPos,
 					(mSlidingDirection != Direction.LEFT && mSlidingDirection != Direction.RIGHT) ? pOffsetY : mFixedPos,
 					mSlidingDirection);
@@ -115,8 +106,8 @@ public class SlideDetector extends ScrollDetector
 		
 		if (mSlidingDirection != Direction.NONE)
 		{
-			if (mSlideListener != null)
-				mSlideListener.onSlideEnd(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
+			if (mListener instanceof ISlideDetectorListener)
+				((ISlideDetectorListener)mListener).onSlideEnd(pSceneTouchEvent, pOffsetX, pOffsetY, mSlidingDirection);
 			
 			mSlidingDirection = Direction.NONE;
 		}
